@@ -40,12 +40,13 @@ add_executable(picowinder main.c )
 pico_set_program_name(picowinder "picowinder")
 pico_set_program_version(picowinder "0.1")
 
-# Generate PIO header
+# Generate PIO headers
 pico_generate_pio_header(picowinder ${CMAKE_CURRENT_LIST_DIR}/ffb_handshake.pio)
+pico_generate_pio_header(picowinder ${CMAKE_CURRENT_LIST_DIR}/read_joystick.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(picowinder 1)
-pico_enable_stdio_usb(picowinder 0)
+pico_enable_stdio_uart(picowinder 0)
+pico_enable_stdio_usb(picowinder 1)
 
 # Add the standard library to the build
 target_link_libraries(picowinder

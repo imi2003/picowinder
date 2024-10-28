@@ -1,9 +1,12 @@
+#include <stdio.h>
+
 #include "pico/stdlib.h"
-#include "hardware/clocks.h"
 #include "hardware/pio.h"
 #include "hardware/uart.h"
 
 #include "ffb_handshake.pio.h"
+#include "read_joystick.pio.h"
+
 
 #define PIN_MIDI_TX 0
 #define PIN_TRIGGER 2
@@ -11,6 +14,23 @@
 #define PIN_D0      4
 #define PIN_D1      5
 #define PIN_D2      6
+
+
+struct JoystickState
+{
+    uint16_t buttons    :  9;
+    uint16_t x          : 10;
+    uint16_t y          : 10;
+    uint16_t throttle   :  7;
+    uint16_t twist      :  6;
+    uint8_t  hat        :  4;
+};
+
+uint rxFifoEntries;
+uint32_t raw0;
+uint32_t raw1;
+uint64_t joystickStateRaw;
+struct JoystickState joystickState;
 
 
 void midi_start(uart_inst_t *uart)
@@ -97,9 +117,32 @@ void midi_autocenter(uart_inst_t *uart, bool enabled)
     }
 }
 
+void joystickReadIRQ()
+{
+    const PIO pio = pio0;
+    const uint sm = 0;
+
+    rxFifoEntries = pio_sm_get_rx_fifo_level(pio, sm);
+
+    uint64_t raw0 = pio_sm_get(pio, sm);
+    uint64_t raw1 = pio_sm_get(pio, sm);
+    uint64_t raw = (raw1 << 16) | (raw0 >> 8);
+
+    joystickState.buttons   = (raw      ) & 0x1ff;
+    joystickState.x         = (raw >>  9) & 0x3ff;
+    joystickState.y         = (raw >> 19) & 0x3ff;
+    joystickState.throttle  = (raw >> 29) & 0x07f;
+    joystickState.twist     = (raw >> 36) & 0x03f;
+    joystickState.hat       = (raw >> 42) & 0x00f;
+
+    pio_interrupt_clear(pio, 0);
+}
+
 
 int main()
 {
+    stdio_init_all();
+
     // Hardware UART setup.
     // The default is 8 data bits, no parity bit, and 1 stop bit.
     uart_init(uart0, 31250);
@@ -109,10 +152,12 @@ int main()
     PIO pio = pio0;
     uint sm = 0;
 
-    // PIO program setup
-    uint offset = pio_add_program(pio, &ffb_handshake_program);
-    uint freq = 100000;
-    ffb_handshake_program_init(pio, sm, offset, freq, PIN_TRIGGER);
+    // Handshake PIO program setup
+    uint offset_handshake = pio_add_program(pio, &ffb_handshake_program);
+    uint freq_handshake = 100000;
+
+    ffb_handshake_program_init(pio, sm, offset_handshake,
+            freq_handshake, PIN_TRIGGER);
 
     // Populate the state machine with our pulses/delays.
     // Delays (ms):             7     35    15    78     4    59
@@ -125,15 +170,50 @@ int main()
         pio_sm_put(pio, sm, word);
     }
 
-    // Activate
+    // Activate the state machine for sending the FFB handshake
     pio_sm_set_enabled(pio, sm, true);
 
     // Wait for the state machine to finish enabling FFB.
     // We could do this via an IRQ, but we know how long it takes.
     sleep_ms(250);
 
+    // The FFB handshake program is done now
     pio_sm_set_enabled(pio, sm, false);
 
+    // Now that the handshake is done, we can send MIDI setup,
+    // and disable the built-in auto-centering spring
     midi_start(uart0);
     midi_autocenter(uart0, false);
+
+    // Read-data PIO program setup
+    uint offset_readjoy = pio_add_program(pio, &read_joystick_program);
+    uint freq_readjoy = 1000000;
+
+    // We blow away the initial FFB-handshake state machine config,
+    // because we don't need it anymore.
+    read_joystick_program_init(pio, sm, offset_readjoy, freq_readjoy,
+            PIN_TRIGGER, PIN_CLK, PIN_D0, PIN_D1, PIN_D2);
+
+    // Set up our IRQ to read the collected joystick data
+    uint pio_irq = PIO0_IRQ_0;
+    pio_set_irq0_source_enabled(pio0, pis_interrupt0, true);
+    irq_set_exclusive_handler(pio_irq, joystickReadIRQ);
+    irq_set_enabled(pio_irq, true);
+
+    // Activate the state machine for reading the stick.
+    // This one stays on, loops, and keeps firing IRQs.
+    pio_sm_set_enabled(pio, sm, true);
+
+    while (1)
+    {
+        sleep_ms(100);
+        printf("x %04d, y %04d, throttle %03d, twist %03d, hat %01d, buttons %03x\n",
+            joystickState.x,
+            joystickState.y,
+            joystickState.throttle,
+            joystickState.twist,
+            joystickState.hat,
+            joystickState.buttons
+            );
+    }
 }

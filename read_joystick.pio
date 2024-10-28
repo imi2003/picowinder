@@ -1,0 +1,53 @@
+; SET pin 0 should be mapped to your LED GPIO
+
+.program read_joystick
+    set pins, 1 [19]    ; Trigger pulse notifies joystick to send data
+    set pins, 0
+
+    set x, 15           ; Acquire 16 bits each from 3 data pins
+get_bit:
+    wait 0 gpio 3       ; Wait for clock low: data is most stable here
+    in pins, 3
+    wait 1 gpio 3       ; Wait for clock high
+    jmp x-- get_bit
+
+    irq wait 0          ; All data is gathered, so send IRQ
+
+    set x, 31           ; Cooldown before triggering again
+wait_loop:
+    nop [31]
+    nop [31]
+    jmp x-- wait_loop
+
+
+% c-sdk {
+#include "hardware/clocks.h"
+
+// Set up the FFB handshake program. Uses only the trigger pin.
+void read_joystick_program_init(
+    PIO pio, uint sm, uint offset, uint freq,
+    uint pin_trigger, uint pin_clk, uint pin_d0, uint pin_d1, uint pin_d2
+    )
+{
+    pio_sm_config c = read_joystick_program_get_default_config(offset);
+    sm_config_set_set_pins(&c, pin_trigger, 1);
+    sm_config_set_in_pins(&c, pin_d0);
+    sm_config_set_in_shift(&c, true, true, 24);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+
+    // Connect PIO to the trigger pin, and set its direction
+    pio_gpio_init(pio, pin_trigger);
+    pio_gpio_init(pio, pin_clk);
+    pio_gpio_init(pio, pin_d0);
+    pio_gpio_init(pio, pin_d1);
+    pio_gpio_init(pio, pin_d2);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_trigger, 1, true);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_clk, 1, false);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_d0, 3, false);
+
+    float div = clock_get_hz(clk_sys) / freq;
+    sm_config_set_clkdiv(&c, div);
+
+    pio_sm_init(pio, sm, offset, &c);
+}
+%}

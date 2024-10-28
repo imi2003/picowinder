@@ -25,17 +25,19 @@ send_pulse:
 
 
 % c-sdk {
+#include "hardware/clocks.h"
+
 // Set up the FFB handshake program. Uses only the trigger pin.
 void ffb_handshake_program_init(
     PIO pio, uint sm, uint offset, uint freq, uint pin_trigger
     )
 {
+    pio_sm_config c = ffb_handshake_program_get_default_config(offset);
+    sm_config_set_set_pins(&c, pin_trigger, 1);
+
     // Connect PIO to the trigger pin, and set its direction
     pio_gpio_init(pio, pin_trigger);
     pio_sm_set_consecutive_pindirs(pio, sm, pin_trigger, 1, true);
-
-    pio_sm_config c = ffb_handshake_program_get_default_config(offset);
-    sm_config_set_set_pins(&c, pin_trigger, 1);
 
     float div = clock_get_hz(clk_sys) / freq;
     sm_config_set_clkdiv(&c, div);

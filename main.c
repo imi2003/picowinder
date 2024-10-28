@@ -160,8 +160,8 @@ int main()
             freq_handshake, PIN_TRIGGER);
 
     // Populate the state machine with our pulses/delays.
-    // Delays (ms):             7     35    15    78     4    59
-    uint delays[7] = { 1000,   70,   350,  150,  780,   40,  590   };
+    // Delays (ms):            7     30    15    78     4    59
+    uint delays[7] = { 1000,   70,   300,  150,  780,   40,  590   };
     // Pulses (count):       1     4     3     2     2     3     2
     uint pulses[7] = {       1,    4,    3,    2,    2,    3,    2 };
     for (int i = 0; i < 7; i++)
@@ -175,7 +175,7 @@ int main()
 
     // Wait for the state machine to finish enabling FFB.
     // We could do this via an IRQ, but we know how long it takes.
-    sleep_ms(250);
+    sleep_ms(400);
 
     // The FFB handshake program is done now
     pio_sm_set_enabled(pio, sm, false);

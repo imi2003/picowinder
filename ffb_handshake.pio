@@ -1,0 +1,45 @@
+; SET pin 0 should be mapped to your LED GPIO
+
+.program ffb_handshake
+    set y, 6            ; 7 groups of pulses in handshake;
+                        ; set y=6 to loop 7 times
+
+main_loop:
+    pull                ; Pull delay and pulse count into OSR
+    out x, 16           ; x = Delay between pulses, in 0.1 ms units
+
+wait_between_pulses:
+    nop [8]
+    jmp x-- wait_between_pulses
+
+    ; Send trigger pulses. 1 cycle = 10 us; 1 ms = 100 cycles
+    out x, 16           ; x = Pulse count
+
+send_pulse:
+    set pins, 1 [1]     ; 20 ms; adapt-ffb joy uses 50 ms,
+                        ; but 20 is more reliable
+    set pins, 0 [16]    ; 180 ms including the jmp below
+    jmp x-- send_pulse
+
+    jmp y-- main_loop
+
+
+% c-sdk {
+// Set up the FFB handshake program. Uses only the trigger pin.
+void ffb_handshake_program_init(
+    PIO pio, uint sm, uint offset, uint freq, uint pin_trigger
+    )
+{
+    // Connect PIO to the trigger pin, and set its direction
+    pio_gpio_init(pio, pin_trigger);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_trigger, 1, true);
+
+    pio_sm_config c = ffb_handshake_program_get_default_config(offset);
+    sm_config_set_set_pins(&c, pin_trigger, 1);
+
+    float div = clock_get_hz(clk_sys) / freq;
+    sm_config_set_clkdiv(&c, div);
+
+    pio_sm_init(pio, sm, offset, &c);
+}
+%}

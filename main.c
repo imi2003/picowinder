@@ -31,6 +31,8 @@ struct JoystickState
 struct report
 {
     uint16_t buttons;
+    uint16_t x;
+    uint16_t y;
 } report;
 
 uint rxFifoEntries;
@@ -142,6 +144,8 @@ void joystickReadIRQ()
     joystickState.hat       = (raw >> 42) & 0x00f;
 
     report.buttons = ~joystickState.buttons;
+    report.x = joystickState.x;
+    report.y = joystickState.y;
 
     pio_interrupt_clear(pio, 0);
 }

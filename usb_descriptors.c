@@ -75,7 +75,7 @@ uint8_t const * tud_descriptor_device_cb(void)
 
 uint8_t const desc_hid_report[] =
 {
-    GAMECON_REPORT_DESC_GAMEPAD(HID_REPORT_ID(1))
+    SIDEWINDER_REPORT_DESC(HID_REPORT_ID(1))
 };
 
 uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)
@@ -131,7 +131,7 @@ enum {
 char const *string_desc_arr[] =
 {
     (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
-    "Nolbin",                      // 1: Manufacturer
+    "Nolbinsoft",                  // 1: Manufacturer
     "Picowinder",                  // 2: Product
     NULL,                          // 3: Serials will use unique ID if possible
 };

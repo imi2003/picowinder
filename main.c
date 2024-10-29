@@ -4,6 +4,8 @@
 #include "hardware/pio.h"
 #include "hardware/uart.h"
 
+#include "tusb.h"
+
 #include "ffb_handshake.pio.h"
 #include "read_joystick.pio.h"
 
@@ -24,13 +26,17 @@ struct JoystickState
     uint16_t throttle   :  7;
     uint16_t twist      :  6;
     uint8_t  hat        :  4;
-};
+} joystickState;
+
+struct report
+{
+    uint16_t buttons;
+} report;
 
 uint rxFifoEntries;
 uint32_t raw0;
 uint32_t raw1;
 uint64_t joystickStateRaw;
-struct JoystickState joystickState;
 
 
 void midi_start(uart_inst_t *uart)
@@ -135,12 +141,30 @@ void joystickReadIRQ()
     joystickState.twist     = (raw >> 36) & 0x03f;
     joystickState.hat       = (raw >> 42) & 0x00f;
 
+    report.buttons = ~joystickState.buttons;
+
     pio_interrupt_clear(pio, 0);
+}
+
+void hid_task()
+{
+    if (tud_suspended())
+    {
+        tud_remote_wakeup();
+    }
+    else
+    {
+        if (!tud_hid_ready()) { return; }
+
+        tud_hid_n_report(0x00, 0x01, &report, sizeof(report));
+    }
 }
 
 
 int main()
 {
+    tud_init(0);
+
     stdio_init_all();
 
     // Hardware UART setup.
@@ -215,5 +239,8 @@ int main()
             joystickState.hat,
             joystickState.buttons
             );
+
+        tud_task(); // tinyusb device task
+        hid_task();
     }
 }

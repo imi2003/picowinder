@@ -15,8 +15,8 @@
                 HID_REPORT_SIZE(1), \
                 HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
                 \
-                HID_REPORT_SIZE(7), \
                 HID_REPORT_COUNT(1), \
+                HID_REPORT_SIZE(7), \
                 HID_INPUT(HID_CONSTANT | HID_ARRAY | HID_ABSOLUTE), \
                 \
             HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), \
@@ -28,16 +28,46 @@
                 HID_REPORT_SIZE(10), \
                 HID_USAGE(HID_USAGE_DESKTOP_X), \
                 HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
-                HID_REPORT_SIZE(6), \
                 HID_REPORT_COUNT(1), \
+                HID_REPORT_SIZE(6), \
                 HID_INPUT(HID_CONSTANT | HID_ARRAY | HID_ABSOLUTE), \
                 /* Y: 10 data bits, 6 padding bits */ \
                 HID_REPORT_COUNT(1), \
                 HID_REPORT_SIZE(10), \
                 HID_USAGE(HID_USAGE_DESKTOP_Y), \
                 HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
-                HID_REPORT_SIZE(6), \
                 HID_REPORT_COUNT(1), \
+                HID_REPORT_SIZE(6), \
+                HID_INPUT(HID_CONSTANT | HID_ARRAY | HID_ABSOLUTE), \
+                /* Rz (joystick twist): 6 data bits, 2 padding bits */ \
+                HID_LOGICAL_MIN(0), \
+                HID_LOGICAL_MAX(63), \
+                HID_REPORT_COUNT(1), \
+                HID_REPORT_SIZE(6), \
+                HID_USAGE(HID_USAGE_DESKTOP_RZ), \
+                HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+                HID_REPORT_COUNT(1), \
+                HID_REPORT_SIZE(2), \
+                HID_INPUT(HID_CONSTANT | HID_ARRAY | HID_ABSOLUTE), \
+                /* Slider (throttle; kind of a dial): 7 data bits, 1 padding bit */ \
+                HID_LOGICAL_MIN(0), \
+                HID_LOGICAL_MAX(127), \
+                HID_REPORT_COUNT(1), \
+                HID_REPORT_SIZE(7), \
+                HID_USAGE(HID_USAGE_DESKTOP_SLIDER), \
+                HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+                HID_REPORT_COUNT(1), \
+                HID_REPORT_SIZE(1), \
+                HID_INPUT(HID_CONSTANT | HID_ARRAY | HID_ABSOLUTE), \
+                /* Hat switch: 4 data bits, 4 padding bits */ \
+                HID_LOGICAL_MIN(1), \
+                HID_LOGICAL_MAX(8), \
+                HID_REPORT_COUNT(1), \
+                HID_REPORT_SIZE(4), \
+                HID_USAGE(HID_USAGE_DESKTOP_HAT_SWITCH), \
+                HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+                HID_REPORT_COUNT(1), \
+                HID_REPORT_SIZE(4), \
                 HID_INPUT(HID_CONSTANT | HID_ARRAY | HID_ABSOLUTE), \
                 \
             HID_COLLECTION_END

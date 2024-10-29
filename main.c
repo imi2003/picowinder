@@ -23,8 +23,8 @@ struct JoystickState
     uint16_t buttons    :  9;
     uint16_t x          : 10;
     uint16_t y          : 10;
-    uint16_t throttle   :  7;
-    uint16_t twist      :  6;
+    uint8_t  throttle   :  7;
+    uint8_t  twist      :  6;
     uint8_t  hat        :  4;
 } joystickState;
 
@@ -33,7 +33,12 @@ struct report
     uint16_t buttons;
     uint16_t x;
     uint16_t y;
+    uint8_t twist;
+    uint8_t throttle;
+    uint8_t hat;
 } report;
+
+uint16_t report_size_bytes = 9; // sizeof doesn't necessarily work well due to packing
 
 uint rxFifoEntries;
 uint32_t raw0;
@@ -146,6 +151,9 @@ void joystickReadIRQ()
     report.buttons = ~joystickState.buttons;
     report.x = joystickState.x;
     report.y = joystickState.y;
+    report.twist = joystickState.twist;
+    report.throttle = joystickState.throttle;
+    report.hat = joystickState.hat;
 
     pio_interrupt_clear(pio, 0);
 }
@@ -160,7 +168,7 @@ void hid_task()
     {
         if (!tud_hid_ready()) { return; }
 
-        tud_hid_n_report(0x00, 0x01, &report, sizeof(report));
+        tud_hid_n_report(0x00, 0x01, &report, report_size_bytes);
     }
 }
 

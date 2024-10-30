@@ -130,6 +130,172 @@ void midi_autocenter(uart_inst_t *uart, bool enabled)
     }
 }
 
+enum EffectType
+{
+    SINE     = 0x02,
+    SQUARE   = 0x05,
+    RAMP     = 0x06,
+    TRIANGLE = 0x08,
+    SPRING   = 0x0d,
+    INERTIA  = 0x0f,
+    FRICTION = 0x10,
+    CONSTANT = 0x12,
+};
+
+#define MODIFY_DURATION     0x40    // TODO verify
+
+#define MODIFY_DIRECTION    0x48
+#define MODIFY_STRENGTH     0x4c
+#define MODIFY_ATTACK_TIME  0x5c    // TODO verify
+#define MODIFY_FADE_TIME    0x60    // TODO verify
+#define MODIFY_ATTACK       0x64    // TODO verify
+#define MODIFY_FADE         0x6c    // TODO verify
+#define MODIFY_FREQUENCY    0x70
+#define MODIFY_AMPLITUDE1   0x74    // TODO figure this one out
+#define MODIFY_AMPLITUDE2   0x78    // TODO figure this one out
+
+#define MODIFY_STRENGTH_X   0x48
+#define MODIFY_STRENGTH_Y   0x4c
+#define MODIFY_OFFSET_X     0x50
+#define MODIFY_OFFSET_Y     0x54
+
+
+struct Effect
+{
+    // Common to all effects
+    enum EffectType type;
+    uint16_t duration; // in 2 ms units; 0 = inf
+
+    // Constant/Sine/Square/Ramp/Triangle only
+    uint16_t direction; // in degrees
+    uint8_t strength;
+    uint8_t attack;
+    uint8_t fade;
+    uint16_t attack_time;
+    uint16_t fade_time;
+    uint16_t frequency;
+    uint16_t amplitude;
+
+    // Inertia/Spring/Friction only
+    uint8_t strength_x;
+    uint8_t strength_y;
+
+    // Inertia/Spring only
+    uint16_t offset_x;
+    uint16_t offset_y;
+};
+
+/*
+Since the MSB is reserved, we get 7 bits of real data per MIDI byte.
+14-bit values must be split into high and low 7-bit chunks.
+*/
+static inline uint8_t lo7(uint16_t val) { return val & 0x7f; }
+static inline uint8_t hi7(uint16_t val) { return (val >> 7) & 0x7f; }
+
+void midi_define_effect(uart_inst_t *uart, struct Effect *effect)
+{
+    uint8_t effect_data[33] = {
+        0xf0,                           // 0: SysEx start - effect data
+        0x00, 0x01, 0x0a, 0x01, 0x23,   // 1..5: Effect header
+        effect->type,                   // 6: enumerated effect type
+        0x7f,                           // 7: not used?
+        lo7(effect->duration),          // 8, 9: duration
+        hi7(effect->duration),
+        0x00, 0x00,                     // 10, 11: not used?
+    };
+
+    uint8_t next_index;
+
+    switch (effect->type)
+    {
+        case CONSTANT:
+        case SINE:
+        case SQUARE:
+        case RAMP:
+        case TRIANGLE:
+
+            effect_data[12] = lo7(effect->direction);   // 12, 13: direction
+            effect_data[13] = hi7(effect->direction);
+            effect_data[14] = effect->strength;         // 14: strength
+            effect_data[15] = 0x64;                     // 15..18: ???
+            effect_data[16] = 0x00;
+            effect_data[17] = 0x10;
+            effect_data[18] = 0x4e;
+            effect_data[19] = effect->attack;           // 19: Envelope Attack Start Level
+            effect_data[20] = lo7(effect->attack_time); // 20, 21: Envelope Attack Time
+            effect_data[21] = hi7(effect->attack_time);
+            effect_data[22] = 0x7f;                     // 22: not used; must be 0x7f
+            effect_data[23] = lo7(effect->fade_time);   // 23, 24: Envelope Fade Time
+            effect_data[24] = hi7(effect->fade_time);
+            effect_data[25] = effect->fade;             // 25: Envelope Fade End Level
+            effect_data[26] = lo7(effect->frequency);   // 26, 27: Frequency
+            effect_data[27] = hi7(effect->frequency);
+            effect_data[28] = lo7(effect->amplitude);   // 28, 29: Amplitude
+            effect_data[29] = hi7(effect->amplitude);
+            effect_data[30] = 0x01;                     // 30, 31: ???
+            effect_data[31] = 0x01;
+            next_index = 32;
+
+            break;
+
+        case SPRING:
+        case INERTIA:
+
+            effect_data[12] = effect->strength_x;
+            effect_data[13] = 0x00;
+            effect_data[14] = effect->strength_y;
+            effect_data[15] = 0x00;
+            effect_data[16] = lo7(effect->offset_x);
+            effect_data[17] = hi7(effect->offset_x);
+            effect_data[18] = lo7(effect->offset_y);
+            effect_data[19] = hi7(effect->offset_y);
+            next_index = 20;
+
+            break;
+
+        case FRICTION:
+
+            effect_data[12] = effect->strength_x;
+            effect_data[13] = 0x00;
+            effect_data[14] = effect->strength_y;
+            effect_data[15] = 0x00;
+            next_index = 16;
+
+            break;
+    }
+
+    // Calculate and write checksum
+    uint8_t checksum = 0;
+    for (int i = 5; i < next_index; i++)
+    {
+        checksum += effect_data[i];
+    }
+    effect_data[next_index++] = 0x80 - (checksum & 0x7f);
+
+    effect_data[next_index++] = 0xf7; // SysEx end
+
+    uart_write_blocking(uart, effect_data, next_index);
+}
+
+void midi_play(uart_inst_t *uart, uint8_t effect_id)
+{
+    uint8_t msg[3] = { 0xb5, 0x20, effect_id };
+    uart_write_blocking(uart, msg, sizeof(msg));
+}
+
+void midi_stop(uart_inst_t *uart, uint8_t effect_id)
+{
+    uint8_t msg[3] = { 0xb5, 0x30, effect_id };
+    uart_write_blocking(uart, msg, sizeof(msg));
+}
+
+void midi_modify(uart_inst_t *uart, uint8_t effect_id, uint8_t param, uint16_t value)
+{
+    uint8_t msg[6] = {
+        0xb5, param, effect_id, 0xa5, lo7(value), hi7(value) };
+    uart_write_blocking(uart, msg, sizeof(msg));
+}
+
 void joystickReadIRQ()
 {
     const PIO pio = pio0;
@@ -240,9 +406,152 @@ int main()
     // This one stays on, loops, and keeps firing IRQs.
     pio_sm_set_enabled(pio, sm, true);
 
+    struct Effect sineEffect = {
+        .type = SINE,
+        .duration = 1000,
+        .direction = 45,
+        .strength = 0x7f,
+        .attack = 0x7f,
+        .fade = 0x7f,
+        .attack_time = 0,
+        .fade_time = 0,
+        .frequency = 2,
+        .amplitude = 0x7f,
+    };
+
+    struct Effect wheelEmuSpringEffect = {
+        .type = SPRING,
+        .duration = 0,
+        .strength_x = 0,
+        .strength_y = 0x7f,
+        .offset_x = 0,
+        .offset_y = 0,
+    };
+
+    struct Effect lightSpringEffect = {
+        .type = SPRING,
+        .duration = 0,
+        .strength_x = 0x30,
+        .strength_y = 0x30,
+        .offset_x = 0,
+        .offset_y = 0,
+    };
+
+    struct Effect frictionEffect = {
+        .type = FRICTION,
+        .duration = 0,
+        .strength_x = 0,
+        .strength_y = 0x7f,
+    };
+
+    struct Effect kickbackInitEffect = {
+        .type = CONSTANT,
+        .duration = 50,
+        .direction = 0,
+        .strength = 0x7f,
+        .attack = 0x7f,
+        .fade = 0,
+        .attack_time = 0,
+        .fade_time = 20,
+        .frequency = 1,
+        .amplitude = 0x7f,
+    };
+
+    struct Effect kickbackSustainEffect = {
+        .type = CONSTANT,
+        .duration = 0,
+        .direction = 0,
+        .strength = 0x28,
+        .attack = 0,
+        .fade = 0,
+        .attack_time = 0,
+        .fade_time = 0,
+        .frequency = 1,
+        .amplitude = 0x7f,
+    };
+
+    struct Effect rumbleEffect = {
+        .type = SINE,
+        .duration = 0,
+        .direction = 90,
+        .strength = 0x20,
+        .attack = 0,
+        .fade = 0,
+        .attack_time = 0,
+        .fade_time = 0,
+        .frequency = 1,
+        .amplitude = 0x7f,
+    };
+
+    midi_define_effect(uart0, &lightSpringEffect); // effect 2
+    midi_define_effect(uart0, &kickbackInitEffect); // effect 3
+    midi_define_effect(uart0, &kickbackSustainEffect); // effect 4
+    midi_define_effect(uart0, &rumbleEffect); // effect 5
+
+    midi_play(uart0, 2);
+    //midi_play(uart0, 5);
+
+    bool fire_old;
+    bool btnA_old;
+    bool btnB_old;
+    bool btnC_old;
+    bool btnD_old;
+
+    // Main USB loop
     while (1)
     {
         tud_task(); // tinyusb device task
         hid_task();
+
+        bool fire = (joystickState.buttons & 0x0001) == 0;
+        bool btnA = (joystickState.buttons & 0x0010) == 0;
+        bool btnB = (joystickState.buttons & 0x0020) == 0;
+        bool btnC = (joystickState.buttons & 0x0040) == 0;
+        bool btnD = (joystickState.buttons & 0x0080) == 0;
+
+        if (fire && !fire_old)
+        {
+            midi_play(uart0, 3);
+            midi_play(uart0, 4);
+        }
+        if (!fire && fire_old)
+        {
+            midi_stop(uart0, 4);
+        }
+
+        uint16_t new_value = 0;
+        bool change = false;
+
+        if (btnA && !btnA_old)
+        {
+            new_value = 0x00;
+            change = true;
+        }
+        if (btnB && !btnB_old)
+        {
+            new_value = 0x40;
+            change = true;
+        }
+        if (btnC && !btnC_old)
+        {
+            new_value = 0x7f;
+            change = true;
+        }
+        if (btnD && !btnD_old)
+        {
+            new_value = 0x80;
+            change = true;
+        }
+
+        if (change)
+        {
+            midi_modify(uart0, 2, MODIFY_OFFSET_Y, new_value);
+        }
+
+        fire_old = fire;
+        btnA_old = btnA;
+        btnB_old = btnB;
+        btnC_old = btnC;
+        btnD_old = btnD;
     }
 }

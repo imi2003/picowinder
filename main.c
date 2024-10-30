@@ -242,16 +242,6 @@ int main()
 
     while (1)
     {
-        sleep_ms(100);
-        printf("x %04d, y %04d, throttle %03d, twist %03d, hat %01d, buttons %03x\n",
-            joystickState.x,
-            joystickState.y,
-            joystickState.throttle,
-            joystickState.twist,
-            joystickState.hat,
-            joystickState.buttons
-            );
-
         tud_task(); // tinyusb device task
         hid_task();
     }

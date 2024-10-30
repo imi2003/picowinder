@@ -132,24 +132,27 @@ void midi_autocenter(uart_inst_t *uart, bool enabled)
 
 enum EffectType
 {
-    SINE     = 0x02,
-    SQUARE   = 0x05,
-    RAMP     = 0x06,
-    TRIANGLE = 0x08,
-    SPRING   = 0x0d,
-    INERTIA  = 0x0f,
-    FRICTION = 0x10,
-    CONSTANT = 0x12,
+    SINE            = 0x02,
+    SQUARE          = 0x05,
+    RAMP            = 0x06,
+    TRIANGLE        = 0x08,
+    SAWTOOTHDOWN    = 0x0a,
+    SAWTOOTHUP      = 0x0b,
+    SPRING          = 0x0d,
+    DAMPER          = 0x0e,
+    INERTIA         = 0x0f,
+    FRICTION        = 0x10,
+    CONSTANT        = 0x12,
 };
 
-#define MODIFY_DURATION     0x40    // TODO verify
+#define MODIFY_DURATION     0x40
 
 #define MODIFY_DIRECTION    0x48
 #define MODIFY_STRENGTH     0x4c
-#define MODIFY_ATTACK_TIME  0x5c    // TODO verify
+#define MODIFY_ATTACK_TIME  0x5c
 #define MODIFY_FADE_TIME    0x60    // TODO verify
-#define MODIFY_ATTACK       0x64    // TODO verify
-#define MODIFY_FADE         0x6c    // TODO verify
+#define MODIFY_ATTACK       0x64
+#define MODIFY_FADE         0x6c
 #define MODIFY_FREQUENCY    0x70
 #define MODIFY_AMPLITUDE1   0x74    // TODO figure this one out
 #define MODIFY_AMPLITUDE2   0x78    // TODO figure this one out
@@ -159,6 +162,13 @@ enum EffectType
 #define MODIFY_OFFSET_X     0x50
 #define MODIFY_OFFSET_Y     0x54
 
+
+/*
+TODO investigate: fade time property isn't behaving as expected.
+It appears that the entire effect duration is currently being treated
+as the fade time, so neither the initial value nor the modified value
+has any effect. It's possible that this behavior is enabled by some other setting.
+*/
 
 struct Effect
 {
@@ -213,6 +223,8 @@ void midi_define_effect(uart_inst_t *uart, struct Effect *effect)
         case SQUARE:
         case RAMP:
         case TRIANGLE:
+        case SAWTOOTHDOWN:
+        case SAWTOOTHUP:
 
             effect_data[12] = lo7(effect->direction);   // 12, 13: direction
             effect_data[13] = hi7(effect->direction);
@@ -239,6 +251,7 @@ void midi_define_effect(uart_inst_t *uart, struct Effect *effect)
             break;
 
         case SPRING:
+        case DAMPER:
         case INERTIA:
 
             effect_data[12] = effect->strength_x;
@@ -471,15 +484,15 @@ int main()
     };
 
     struct Effect rumbleEffect = {
-        .type = SINE,
-        .duration = 0,
+        .type = TRIANGLE,
+        .duration = 1000,
         .direction = 90,
-        .strength = 0x20,
+        .strength = 0x7f,
         .attack = 0,
-        .fade = 0,
+        .fade = 0x7f,
         .attack_time = 0,
-        .fade_time = 0,
-        .frequency = 1,
+        .fade_time = 1,
+        .frequency = 2,
         .amplitude = 0x7f,
     };
 
@@ -511,12 +524,12 @@ int main()
 
         if (fire && !fire_old)
         {
-            midi_play(uart0, 3);
-            midi_play(uart0, 4);
+            midi_play(uart0, 5);
+            //midi_play(uart0, 4);
         }
         if (!fire && fire_old)
         {
-            midi_stop(uart0, 4);
+            //midi_stop(uart0, 4);
         }
 
         uint16_t new_value = 0;
@@ -524,28 +537,28 @@ int main()
 
         if (btnA && !btnA_old)
         {
-            new_value = 0x00;
+            new_value = 0;
             change = true;
         }
         if (btnB && !btnB_old)
         {
-            new_value = 0x40;
+            new_value = 200;
             change = true;
         }
         if (btnC && !btnC_old)
         {
-            new_value = 0x7f;
+            new_value = 500;
             change = true;
         }
         if (btnD && !btnD_old)
         {
-            new_value = 0x80;
+            new_value = 1000;
             change = true;
         }
 
         if (change)
         {
-            midi_modify(uart0, 2, MODIFY_OFFSET_Y, new_value);
+            midi_modify(uart0, 5, MODIFY_FADE_TIME, new_value);
         }
 
         fire_old = fire;

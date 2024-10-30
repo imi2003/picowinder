@@ -149,6 +149,7 @@ enum EffectType
 
 #define MODIFY_DIRECTION    0x48
 #define MODIFY_STRENGTH     0x4c
+#define MODIFY_SAMPLE_RATE  0x50
 #define MODIFY_ATTACK_TIME  0x5c
 #define MODIFY_FADE_TIME    0x60    // TODO verify
 #define MODIFY_ATTACK       0x64
@@ -175,10 +176,12 @@ struct Effect
     // Common to all effects
     enum EffectType type;
     uint16_t duration; // in 2 ms units; 0 = inf
+    uint16_t button_mask; // 9-bit button mask; 0 = must play manually
 
     // Constant/Sine/Square/Ramp/Triangle only
     uint16_t direction; // in degrees
     uint8_t strength;
+    uint8_t sample_rate; // in Hz; default is generally 100
     uint8_t attack;
     uint8_t fade;
     uint16_t attack_time;
@@ -211,7 +214,8 @@ void midi_define_effect(uart_inst_t *uart, struct Effect *effect)
         0x7f,                           // 7: not used?
         lo7(effect->duration),          // 8, 9: duration
         hi7(effect->duration),
-        0x00, 0x00,                     // 10, 11: not used?
+        lo7(effect->button_mask),       // 10, 11: button mask
+        hi7(effect->button_mask)
     };
 
     uint8_t next_index;
@@ -229,8 +233,8 @@ void midi_define_effect(uart_inst_t *uart, struct Effect *effect)
             effect_data[12] = lo7(effect->direction);   // 12, 13: direction
             effect_data[13] = hi7(effect->direction);
             effect_data[14] = effect->strength;         // 14: strength
-            effect_data[15] = 0x64;                     // 15..18: ???
-            effect_data[16] = 0x00;
+            effect_data[15] = lo7(effect->sample_rate); // 15, 16: sample rate
+            effect_data[16] = hi7(effect->sample_rate);
             effect_data[17] = 0x10;
             effect_data[18] = 0x4e;
             effect_data[19] = effect->attack;           // 19: Envelope Attack Start Level
@@ -422,8 +426,10 @@ int main()
     struct Effect sineEffect = {
         .type = SINE,
         .duration = 1000,
+        .button_mask = 0,
         .direction = 45,
         .strength = 0x7f,
+        .sample_rate = 100,
         .attack = 0x7f,
         .fade = 0x7f,
         .attack_time = 0,
@@ -435,6 +441,7 @@ int main()
     struct Effect wheelEmuSpringEffect = {
         .type = SPRING,
         .duration = 0,
+        .button_mask = 0,
         .strength_x = 0,
         .strength_y = 0x7f,
         .offset_x = 0,
@@ -444,6 +451,7 @@ int main()
     struct Effect lightSpringEffect = {
         .type = SPRING,
         .duration = 0,
+        .button_mask = 0,
         .strength_x = 0x30,
         .strength_y = 0x30,
         .offset_x = 0,
@@ -453,19 +461,22 @@ int main()
     struct Effect frictionEffect = {
         .type = FRICTION,
         .duration = 0,
+        .button_mask = 0,
         .strength_x = 0,
         .strength_y = 0x7f,
     };
 
     struct Effect kickbackInitEffect = {
         .type = CONSTANT,
-        .duration = 50,
+        .duration = 0,
+        .button_mask = 0x01,
         .direction = 0,
         .strength = 0x7f,
+        .sample_rate = 100,
         .attack = 0x7f,
-        .fade = 0,
+        .fade = 0x7f,
         .attack_time = 0,
-        .fade_time = 20,
+        .fade_time = 0,
         .frequency = 1,
         .amplitude = 0x7f,
     };
@@ -473,10 +484,12 @@ int main()
     struct Effect kickbackSustainEffect = {
         .type = CONSTANT,
         .duration = 0,
+        .button_mask = 0x01,
         .direction = 0,
-        .strength = 0x28,
-        .attack = 0,
-        .fade = 0,
+        .strength = 0x30,
+        .sample_rate = 100,
+        .attack = 0x7f,
+        .fade = 0x7f,
         .attack_time = 0,
         .fade_time = 0,
         .frequency = 1,
@@ -486,8 +499,10 @@ int main()
     struct Effect rumbleEffect = {
         .type = TRIANGLE,
         .duration = 1000,
+        .button_mask = 0,
         .direction = 90,
         .strength = 0x7f,
+        .sample_rate = 100,
         .attack = 0,
         .fade = 0x7f,
         .attack_time = 0,
@@ -496,13 +511,26 @@ int main()
         .amplitude = 0x7f,
     };
 
+    struct Effect testEffect = {
+        .type = SINE,
+        .duration = 0,
+        .button_mask = 0x100,
+        .direction = 90,
+        .strength = 0x7f,
+        .sample_rate = 100,
+        .attack = 0x7f,
+        .fade = 0x7f,
+        .attack_time = 0,
+        .fade_time = 0,
+        .frequency = 2,
+        .amplitude = 0x7f,
+    };
+
     midi_define_effect(uart0, &lightSpringEffect); // effect 2
     midi_define_effect(uart0, &kickbackInitEffect); // effect 3
     midi_define_effect(uart0, &kickbackSustainEffect); // effect 4
     midi_define_effect(uart0, &rumbleEffect); // effect 5
-
-    midi_play(uart0, 2);
-    //midi_play(uart0, 5);
+    midi_define_effect(uart0, &testEffect); // effect 6
 
     bool fire_old;
     bool btnA_old;
@@ -516,38 +544,27 @@ int main()
         tud_task(); // tinyusb device task
         hid_task();
 
-        bool fire = (joystickState.buttons & 0x0001) == 0;
         bool btnA = (joystickState.buttons & 0x0010) == 0;
         bool btnB = (joystickState.buttons & 0x0020) == 0;
         bool btnC = (joystickState.buttons & 0x0040) == 0;
         bool btnD = (joystickState.buttons & 0x0080) == 0;
-
-        if (fire && !fire_old)
-        {
-            midi_play(uart0, 5);
-            //midi_play(uart0, 4);
-        }
-        if (!fire && fire_old)
-        {
-            //midi_stop(uart0, 4);
-        }
 
         uint16_t new_value = 0;
         bool change = false;
 
         if (btnA && !btnA_old)
         {
-            new_value = 0;
+            new_value = 1;
             change = true;
         }
         if (btnB && !btnB_old)
         {
-            new_value = 200;
+            new_value = 3;
             change = true;
         }
         if (btnC && !btnC_old)
         {
-            new_value = 500;
+            new_value = 5;
             change = true;
         }
         if (btnD && !btnD_old)
@@ -558,10 +575,9 @@ int main()
 
         if (change)
         {
-            midi_modify(uart0, 5, MODIFY_FADE_TIME, new_value);
+            midi_modify(uart0, 6, MODIFY_SAMPLE_RATE, new_value);
         }
 
-        fire_old = fire;
         btnA_old = btnA;
         btnB_old = btnB;
         btnC_old = btnC;

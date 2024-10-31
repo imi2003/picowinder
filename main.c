@@ -466,30 +466,15 @@ int main()
         .strength_y = 0x7f,
     };
 
-    struct Effect kickbackInitEffect = {
+    struct Effect kickbackEffect = {
         .type = CONSTANT,
-        .duration = 0,
+        .duration = 500,
         .button_mask = 0x01,
         .direction = 0,
-        .strength = 0x7f,
+        .strength = 0x5f,
         .sample_rate = 100,
         .attack = 0x7f,
-        .fade = 0x7f,
-        .attack_time = 0,
-        .fade_time = 0,
-        .frequency = 1,
-        .amplitude = 0x7f,
-    };
-
-    struct Effect kickbackSustainEffect = {
-        .type = CONSTANT,
-        .duration = 0,
-        .button_mask = 0x01,
-        .direction = 0,
-        .strength = 0x30,
-        .sample_rate = 100,
-        .attack = 0x7f,
-        .fade = 0x7f,
+        .fade = 0x00,
         .attack_time = 0,
         .fade_time = 0,
         .frequency = 1,
@@ -527,10 +512,11 @@ int main()
     };
 
     midi_define_effect(uart0, &lightSpringEffect); // effect 2
-    midi_define_effect(uart0, &kickbackInitEffect); // effect 3
-    midi_define_effect(uart0, &kickbackSustainEffect); // effect 4
-    midi_define_effect(uart0, &rumbleEffect); // effect 5
-    midi_define_effect(uart0, &testEffect); // effect 6
+    midi_define_effect(uart0, &kickbackEffect); // effect 3
+    midi_define_effect(uart0, &rumbleEffect); // effect 4
+    midi_define_effect(uart0, &testEffect); // effect 5
+
+    midi_play(uart0, 2);
 
     bool fire_old;
     bool btnA_old;
@@ -575,7 +561,7 @@ int main()
 
         if (change)
         {
-            midi_modify(uart0, 6, MODIFY_SAMPLE_RATE, new_value);
+            midi_modify(uart0, 5, MODIFY_SAMPLE_RATE, new_value);
         }
 
         btnA_old = btnA;

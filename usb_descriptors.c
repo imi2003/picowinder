@@ -75,7 +75,13 @@ uint8_t const * tud_descriptor_device_cb(void)
 
 uint8_t const desc_hid_report[] =
 {
-    SIDEWINDER_REPORT_DESC(HID_REPORT_ID(1))
+    // Input Reports
+    SIDEWINDER_REPORT_DESC_INPUT(HID_REPORT_ID(1)),
+    // Output Reports
+    SIDEWINDER_REPORT_DESC_SET_EFFECT(HID_REPORT_ID(1)),
+    SIDEWINDER_REPORT_DESC_EFFECT_OPERATION(HID_REPORT_ID(10)),
+    // Feature Reports
+    SIDEWINDER_REPORT_DESC_FEATURE_POOL_REPORT(HID_REPORT_ID(3)),
 };
 
 uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)

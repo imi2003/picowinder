@@ -79,7 +79,7 @@
 // Output Report 1: Set Effect - define params for an effect
 /////////////////////////////////////////////////////////////////////
 
-#define SIDEWINDER_REPORT_DESC_SET_EFFECT(...) \
+#define SIDEWINDER_REPORT_DESC_OUTPUT_SET_EFFECT(...) \
     HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
     HID_USAGE(HID_USAGE_PID_SET_EFFECT_REPORT), \
     HID_COLLECTION(HID_COLLECTION_LOGICAL), \
@@ -212,13 +212,133 @@
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         HID_UNIT(0), \
         HID_UNIT_EXPONENT(0), \
+        \
     HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
+// Output Report 2: Set Envelope - define envelope for an effect
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_OUTPUT_SET_ENVELOPE(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_SET_ENVELOPE_REPORT), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Block Index */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_INDEX), \
+        HID_LOGICAL_MIN(1), \
+        HID_LOGICAL_MAX(40), \
+        HID_PHYSICAL_MIN(1), \
+        HID_PHYSICAL_MAX(40), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Attack Level, Fade Level */ \
+        HID_USAGE(HID_USAGE_PID_ATTACK_LEVEL), \
+        HID_USAGE(HID_USAGE_PID_FADE_LEVEL), \
+        HID_LOGICAL_MIN(0), \
+        HID_LOGICAL_MAX(255), \
+        HID_PHYSICAL_MIN(0), \
+        HID_PHYSICAL_MAX_N(10000, 2), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(2), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Attack Time, Fade Time */ \
+        HID_USAGE(HID_USAGE_PID_ATTACK_TIME), \
+        HID_USAGE(HID_USAGE_PID_FADE_TIME), \
+        HID_UNIT_N(4099, 2), \
+        HID_UNIT_EXPONENT(-3), \
+        HID_LOGICAL_MIN(0), \
+        HID_LOGICAL_MAX_N(32767, 2), \
+        HID_PHYSICAL_MIN(0), \
+        HID_PHYSICAL_MAX_N(32767, 2), \
+        HID_REPORT_SIZE(16), \
+        HID_REPORT_COUNT(2), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        HID_PHYSICAL_MAX(0), \
+        HID_UNIT(0), \
+        HID_UNIT_EXPONENT(0), \
+        \
+    HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
+// Output Report 5: Set Constant - describe a constant force
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_OUTPUT_SET_CONSTANT(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_SET_CONSTANT_FORCE_REPORT), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Block Index */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_INDEX), \
+        HID_LOGICAL_MIN(1), \
+        HID_LOGICAL_MAX(40), \
+        HID_PHYSICAL_MIN(1), \
+        HID_PHYSICAL_MAX(40), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Magnitude */ \
+        HID_USAGE(HID_USAGE_PID_MAGNITUDE), \
+        HID_LOGICAL_MIN_N(-255, 2), \
+        HID_LOGICAL_MAX_N(255, 2), \
+        HID_PHYSICAL_MIN_N(-10000, 2), \
+        HID_PHYSICAL_MAX_N(10000, 2), \
+        HID_REPORT_SIZE(16), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+    HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
+// Output Report 6: Set Ramp - describe a ramp force
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_OUTPUT_SET_RAMP(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_SET_RAMP_FORCE_REPORT), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Block Index */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_INDEX), \
+        HID_LOGICAL_MIN(1), \
+        HID_LOGICAL_MAX(40), \
+        HID_PHYSICAL_MIN(1), \
+        HID_PHYSICAL_MAX(40), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Magnitude */ \
+        HID_USAGE(HID_USAGE_PID_RAMP_START), \
+        HID_USAGE(HID_USAGE_PID_RAMP_END), \
+        HID_LOGICAL_MIN(-128), \
+        HID_LOGICAL_MAX(127), \
+        HID_PHYSICAL_MIN_N(-10000, 2), \
+        HID_PHYSICAL_MAX_N(10000, 2), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(2), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+    HID_COLLECTION_END
+
 
 /////////////////////////////////////////////////////////////////////
 // Output Report 10: Effect Operation - stop/start effects
 /////////////////////////////////////////////////////////////////////
 
-#define SIDEWINDER_REPORT_DESC_EFFECT_OPERATION(...) \
+#define SIDEWINDER_REPORT_DESC_OUTPUT_EFFECT_OPERATION(...) \
     HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
     HID_USAGE(HID_USAGE_PID_EFFECT_OPERATION_REPORT), \
     HID_COLLECTION(HID_COLLECTION_LOGICAL), \
@@ -254,6 +374,164 @@
         HID_PHYSICAL_MIN(0), \
         HID_PHYSICAL_MAX_N(255, 2), \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+    HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
+// Output Report 11: Block Free - delete an effect and free its space
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_OUTPUT_BLOCK_FREE(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_FREE_REPORT), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Block Index */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_INDEX), \
+        HID_LOGICAL_MIN(1), \
+        HID_LOGICAL_MAX(40), \
+        HID_PHYSICAL_MIN(1), \
+        HID_PHYSICAL_MAX(40), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+    HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
+// Output Report 12: Device Control - commands affecting entire device
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_OUTPUT_DEVICE_CONTROL(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_DEVICE_CONTROL), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Block Index */ \
+        HID_USAGE(HID_USAGE_PID_DC_ENABLE_ACTUATORS), \
+        HID_USAGE(HID_USAGE_PID_DC_DISABLE_ACTUATORS), \
+        HID_USAGE(HID_USAGE_PID_DC_STOP_ALL_EFFECTS), \
+        HID_USAGE(HID_USAGE_PID_DC_RESET), \
+        HID_USAGE(HID_USAGE_PID_DC_PAUSE), \
+        HID_USAGE(HID_USAGE_PID_DC_CONTINUE), \
+        HID_LOGICAL_MIN(1), \
+        HID_LOGICAL_MAX(6), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_ARRAY | HID_ABSOLUTE), \
+        \
+    HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
+// Output Report 13: Device Gain - gain across all effects
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_OUTPUT_DEVICE_GAIN(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_DEVICE_GAIN_REPORT), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Device Gain */ \
+        HID_USAGE(HID_USAGE_PID_DEVICE_GAIN), \
+        HID_LOGICAL_MIN(0), \
+        HID_LOGICAL_MAX(255), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+    HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
+// Feature Report 1: Create New Effect (in device memory)
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_FEATURE_CREATE_NEW_EFFECT(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_CREATE_NEW_EFFECT_PARAM_BLOCK_REPORT), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Effect Type */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_TYPE), \
+        HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+            HID_USAGE(HID_USAGE_PID_ET_CONSTANT_FORCE), \
+            HID_USAGE(HID_USAGE_PID_ET_RAMP), \
+            HID_USAGE(HID_USAGE_PID_ET_SQUARE), \
+            HID_USAGE(HID_USAGE_PID_ET_SINE), \
+            HID_USAGE(HID_USAGE_PID_ET_TRIANGLE), \
+            HID_USAGE(HID_USAGE_PID_ET_SAWTOOTH_UP), \
+            HID_USAGE(HID_USAGE_PID_ET_SAWTOOTH_DOWN), \
+            HID_USAGE(HID_USAGE_PID_ET_SPRING), \
+            HID_USAGE(HID_USAGE_PID_ET_DAMPER), \
+            HID_USAGE(HID_USAGE_PID_ET_INERTIA), \
+            HID_USAGE(HID_USAGE_PID_ET_FRICTION), \
+            /* Unlike the FF2, ET_CUSTOM_FORCE is not supported here. */ \
+            HID_LOGICAL_MIN(1), \
+            HID_LOGICAL_MAX(11), \
+            HID_PHYSICAL_MIN(1), \
+            HID_PHYSICAL_MAX(11), \
+            HID_REPORT_SIZE(8), \
+            HID_REPORT_COUNT(1), \
+            HID_FEATURE(HID_DATA | HID_ARRAY | HID_ABSOLUTE), \
+        HID_COLLECTION_END, \
+        \
+        /* Byte Count from FF2 descripter omitted, since we don't support custom forces. */ \
+        \
+    HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
+// Feature Report 2: Effect Block Load Report - was effect creation successful?
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_FEATURE_BLOCK_LOAD(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_LOAD_REPORT), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Block Index */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_INDEX), \
+        HID_LOGICAL_MIN(1), \
+        HID_LOGICAL_MAX(40), \
+        HID_PHYSICAL_MIN(1), \
+        HID_PHYSICAL_MAX(40), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_FEATURE(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Block Load Status */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_LOAD_STATUS), \
+        HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+            HID_USAGE(HID_USAGE_PID_BLOCK_LOAD_SUCCESS), \
+            HID_USAGE(HID_USAGE_PID_BLOCK_LOAD_FULL), \
+            HID_USAGE(HID_USAGE_PID_BLOCK_LOAD_ERROR), \
+            HID_LOGICAL_MIN(1), \
+            HID_LOGICAL_MAX(3), \
+            HID_PHYSICAL_MIN(1), \
+            HID_PHYSICAL_MAX(3), \
+            HID_REPORT_SIZE(8), \
+            HID_REPORT_COUNT(1), \
+            HID_FEATURE(HID_DATA | HID_ARRAY | HID_ABSOLUTE), \
+        HID_COLLECTION_END, \
+        \
+        /* RAM Pool Available */ \
+        HID_USAGE(HID_USAGE_PID_RAM_POOL_AVAILABLE), \
+        HID_LOGICAL_MIN(0), \
+        HID_LOGICAL_MAX(0), \
+        HID_PHYSICAL_MIN(0), \
+        HID_PHYSICAL_MAX(0), \
+        HID_REPORT_SIZE(16), \
+        HID_REPORT_COUNT(1), \
+        HID_FEATURE(HID_DATA | HID_ARRAY | HID_ABSOLUTE), \
+        \
     HID_COLLECTION_END
 
 
@@ -263,6 +541,7 @@
 
 #define SIDEWINDER_REPORT_DESC_FEATURE_POOL_REPORT(...) \
     HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_PARAM_BLOCK_POOLS_REPORT), \
     HID_COLLECTION(HID_COLLECTION_LOGICAL), \
         /* Report ID */ __VA_ARGS__ \
         \
@@ -299,22 +578,3 @@
         HID_FEATURE(HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE), \
         \
     HID_COLLECTION_END
-
-/*
-Usage PID Pool Report (0x7f)
-Collection Logical (0x02)
-
-    Usage Device Managed Pool (0xa9)
-    Usage Shared Parameter Blocks (0xaa)
-    Report Size 1
-    Report Count 2
-    Logical Minimum 0 Logical Maximum 1
-    Physical Minimum 0 Physical Maximum 1
-    Feature Data (0x02)
-
-    Report Size 6
-    Report Count 1
-    Feature Constant (0x03)
-
-End Collection
-*/

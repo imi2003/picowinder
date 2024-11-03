@@ -73,15 +73,31 @@ uint8_t const * tud_descriptor_device_cb(void)
 // HID Report Descriptor
 //--------------------------------------------------------------------+
 
+/*
+    Note: hid-pidff.c in the Linux kernel will "oops" due to a null-pointer deref
+    if any of its "optional" reports are not present. This includes:
+    * Set Envelope
+    * Set Constant
+    * Set Ramp
+*/
+
 uint8_t const desc_hid_report[] =
 {
     // Input Reports
     SIDEWINDER_REPORT_DESC_INPUT(HID_REPORT_ID(1)),
     // Output Reports
-    SIDEWINDER_REPORT_DESC_SET_EFFECT(HID_REPORT_ID(1)),
-    SIDEWINDER_REPORT_DESC_EFFECT_OPERATION(HID_REPORT_ID(10)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_SET_EFFECT            (HID_REPORT_ID(1)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_SET_ENVELOPE          (HID_REPORT_ID(2)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_SET_CONSTANT          (HID_REPORT_ID(5)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_SET_RAMP              (HID_REPORT_ID(6)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_EFFECT_OPERATION      (HID_REPORT_ID(10)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_BLOCK_FREE            (HID_REPORT_ID(11)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_DEVICE_CONTROL        (HID_REPORT_ID(12)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_DEVICE_GAIN           (HID_REPORT_ID(13)),
     // Feature Reports
-    SIDEWINDER_REPORT_DESC_FEATURE_POOL_REPORT(HID_REPORT_ID(3)),
+    SIDEWINDER_REPORT_DESC_FEATURE_CREATE_NEW_EFFECT    (HID_REPORT_ID(1)),
+    SIDEWINDER_REPORT_DESC_FEATURE_BLOCK_LOAD           (HID_REPORT_ID(2)),
+    SIDEWINDER_REPORT_DESC_FEATURE_POOL_REPORT          (HID_REPORT_ID(3)),
 };
 
 uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)

@@ -1,3 +1,6 @@
+#ifndef USB_DESCRIPTORS_H
+#define USB_DESCRIPTORS_H
+
 #include "common/tusb_common.h"
 #include "device/usbd.h"
 
@@ -378,7 +381,7 @@
         \
         /* Period */ \
         HID_USAGE(HID_USAGE_PID_PERIOD), \
-        HID_UNIT(4099), \
+        HID_UNIT_N(4099, 2), \
         HID_UNIT_EXPONENT(-3), \
         HID_LOGICAL_MIN(0), \
         HID_LOGICAL_MAX_N(32767, 2), \
@@ -704,3 +707,5 @@
         HID_FEATURE(HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE), \
         \
     HID_COLLECTION_END
+
+#endif // USB_DESCRIPTORS_H

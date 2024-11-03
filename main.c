@@ -130,7 +130,7 @@ void midi_autocenter(uart_inst_t *uart, bool enabled)
     }
 }
 
-enum EffectType
+enum MidiEffectType
 {
     SINE            = 0x02,
     SQUARE          = 0x05,
@@ -174,7 +174,7 @@ has any effect. It's possible that this behavior is enabled by some other settin
 struct Effect
 {
     // Common to all effects
-    enum EffectType type;
+    enum MidiEffectType type;
     uint16_t duration; // in 2 ms units; 0 = inf
     uint16_t button_mask; // 9-bit button mask; 0 = must play manually
 

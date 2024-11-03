@@ -268,6 +268,132 @@
 
 
 /////////////////////////////////////////////////////////////////////
+// Output Report 3: Set Condition - params for spring/damper/inertia
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_OUTPUT_SET_CONDITION(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_SET_CONDITION_REPORT), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Block Index */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_INDEX), \
+        HID_LOGICAL_MIN(1), \
+        HID_LOGICAL_MAX(40), \
+        HID_PHYSICAL_MIN(1), \
+        HID_PHYSICAL_MAX(40), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Parameter Block Offset */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_OFFSET), \
+        HID_LOGICAL_MIN(0), \
+        HID_LOGICAL_MAX(1), \
+        HID_PHYSICAL_MIN(0), \
+        HID_PHYSICAL_MAX(1), \
+        HID_REPORT_SIZE(8), /* 4 in SW FF2, since Specific Block Offset is also given afterward */ \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Center-Point Offset + Pos/Neg Coefficients */ \
+        HID_USAGE(HID_USAGE_PID_CENTER_POINT_OFFSET), \
+        HID_USAGE(HID_USAGE_PID_POSITIVE_COEFFICIENT), \
+        HID_USAGE(HID_USAGE_PID_NEGATIVE_COEFFICIENT), \
+        HID_LOGICAL_MIN(-128), \
+        HID_LOGICAL_MAX(127), \
+        HID_PHYSICAL_MIN_N(-10000, 2), \
+        HID_PHYSICAL_MAX_N(10000, 2), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(3), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Positive/Negative Saturation; Dead Band */ \
+        HID_USAGE(HID_USAGE_PID_POSITIVE_SATURATION), \
+        HID_USAGE(HID_USAGE_PID_NEGATIVE_SATURATION), \
+        HID_USAGE(HID_USAGE_PID_DEAD_BAND), \
+        HID_LOGICAL_MIN(0), \
+        HID_LOGICAL_MAX(255), \
+        HID_PHYSICAL_MIN(0), \
+        HID_PHYSICAL_MAX_N(10000, 2), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(3), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+    HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
+// Output Report 4: Set Periodic - set params for periodic wave effects
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_OUTPUT_SET_PERIODIC(...) \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
+    HID_USAGE(HID_USAGE_PID_SET_PERIODIC_REPORT), \
+    HID_COLLECTION(HID_COLLECTION_LOGICAL), \
+        /* Report ID */ __VA_ARGS__ \
+        \
+        /* Block Index */ \
+        HID_USAGE(HID_USAGE_PID_EFFECT_PARAM_BLOCK_INDEX), \
+        HID_LOGICAL_MIN(1), \
+        HID_LOGICAL_MAX(40), \
+        HID_PHYSICAL_MIN(1), \
+        HID_PHYSICAL_MAX(40), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Magnitude */ \
+        HID_USAGE(HID_USAGE_PID_MAGNITUDE), \
+        HID_LOGICAL_MIN(0), \
+        HID_LOGICAL_MAX(255), \
+        HID_PHYSICAL_MIN(0), \
+        HID_PHYSICAL_MAX_N(10000, 2), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Offset */ \
+        HID_USAGE(HID_USAGE_PID_OFFSET), \
+        HID_LOGICAL_MIN(-128), \
+        HID_LOGICAL_MAX(127), \
+        HID_PHYSICAL_MIN_N(-10000, 2), \
+        HID_PHYSICAL_MAX_N(10000, 2), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Phase */ \
+        HID_USAGE(HID_USAGE_PID_PHASE), \
+        HID_UNIT(20), \
+        HID_UNIT_EXPONENT(-2), \
+        HID_LOGICAL_MIN(0), \
+        HID_LOGICAL_MAX(255), \
+        HID_PHYSICAL_MIN(0), \
+        HID_PHYSICAL_MAX(0), \
+        HID_REPORT_SIZE(8), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        /* Period */ \
+        HID_USAGE(HID_USAGE_PID_PERIOD), \
+        HID_UNIT(4099), \
+        HID_UNIT_EXPONENT(-3), \
+        HID_LOGICAL_MIN(0), \
+        HID_LOGICAL_MAX_N(32767, 2), \
+        HID_PHYSICAL_MIN(0), \
+        HID_PHYSICAL_MAX_N(32767, 2), \
+        HID_REPORT_SIZE(16), \
+        HID_REPORT_COUNT(1), \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
+        HID_UNIT(0), \
+        HID_UNIT_EXPONENT(0), \
+    HID_COLLECTION_END
+
+
+/////////////////////////////////////////////////////////////////////
 // Output Report 5: Set Constant - describe a constant force
 /////////////////////////////////////////////////////////////////////
 
@@ -320,7 +446,7 @@
         HID_REPORT_COUNT(1), \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         \
-        /* Magnitude */ \
+        /* Ramp Start and End */ \
         HID_USAGE(HID_USAGE_PID_RAMP_START), \
         HID_USAGE(HID_USAGE_PID_RAMP_END), \
         HID_LOGICAL_MIN(-128), \

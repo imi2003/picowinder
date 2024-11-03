@@ -75,10 +75,8 @@ uint8_t const * tud_descriptor_device_cb(void)
 
 /*
     Note: hid-pidff.c in the Linux kernel will "oops" due to a null-pointer deref
-    if any of its "optional" reports are not present. This includes:
-    * Set Envelope
-    * Set Constant
-    * Set Ramp
+    if any of its "optional" reports are not present. These include:
+    Set Envelope, Set Condition, Set Periodic, Set Constant, Set Ramp.
 */
 
 uint8_t const desc_hid_report[] =
@@ -88,6 +86,8 @@ uint8_t const desc_hid_report[] =
     // Output Reports
     SIDEWINDER_REPORT_DESC_OUTPUT_SET_EFFECT            (HID_REPORT_ID(1)),
     SIDEWINDER_REPORT_DESC_OUTPUT_SET_ENVELOPE          (HID_REPORT_ID(2)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_SET_CONDITION         (HID_REPORT_ID(3)),
+    SIDEWINDER_REPORT_DESC_OUTPUT_SET_PERIODIC          (HID_REPORT_ID(4)),
     SIDEWINDER_REPORT_DESC_OUTPUT_SET_CONSTANT          (HID_REPORT_ID(5)),
     SIDEWINDER_REPORT_DESC_OUTPUT_SET_RAMP              (HID_REPORT_ID(6)),
     SIDEWINDER_REPORT_DESC_OUTPUT_EFFECT_OPERATION      (HID_REPORT_ID(10)),

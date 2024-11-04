@@ -7,19 +7,22 @@
 
 enum MidiEffectType
 {
-    SINE            = 0x02,
-    SQUARE          = 0x05,
-    RAMP            = 0x06,
-    TRIANGLE        = 0x08,
-    SAWTOOTHDOWN    = 0x0a,
-    SAWTOOTHUP      = 0x0b,
-    SPRING          = 0x0d,
-    DAMPER          = 0x0e,
-    INERTIA         = 0x0f,
-    FRICTION        = 0x10,
-    CONSTANT        = 0x12,
+    MIDI_ET_NONE            = 0x00,
+    MIDI_ET_SINE            = 0x02,
+    MIDI_ET_SQUARE          = 0x05,
+    MIDI_ET_RAMP            = 0x06,
+    MIDI_ET_TRIANGLE        = 0x08,
+    MIDI_ET_SAWTOOTHDOWN    = 0x0a,
+    MIDI_ET_SAWTOOTHUP      = 0x0b,
+    MIDI_ET_SPRING          = 0x0d,
+    MIDI_ET_DAMPER          = 0x0e,
+    MIDI_ET_INERTIA         = 0x0f,
+    MIDI_ET_FRICTION        = 0x10,
+    MIDI_ET_CONSTANT        = 0x12,
 };
 
+#define EFFECT_MEMORY_SIZE 39 // max effect ID is 40, per descriptor
+#define EFFECT_MEMORY_START 2
 
 /*
 TODO investigate: fade time property isn't behaving as expected.
@@ -75,12 +78,18 @@ struct Effect
 #define MODIFY_OFFSET_Y     0x54
 
 
+int ffb_midi_get_free_effect_id();
+size_t ffb_midi_get_num_available_effects();
+bool ffb_midi_last_add_succeeded();
+uint8_t ffb_midi_last_assigned_effect_id();
+
 void ffb_midi_init(uart_inst_t *uart);
 void ffb_midi_set_autocenter(uart_inst_t *uart, bool enabled);
-void ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect);
-void ffb_midi_play(uart_inst_t *uart, uint8_t effect_id);
-void ffb_midi_stop(uart_inst_t *uart, uint8_t effect_id);
-void ffb_midi_modify(uart_inst_t *uart, uint8_t effect_id, uint8_t param, uint16_t value);
+int ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect);
+void ffb_midi_erase(uart_inst_t *uart, int effect_id);
+void ffb_midi_play(uart_inst_t *uart, int effect_id);
+void ffb_midi_stop(uart_inst_t *uart, int effect_id);
+void ffb_midi_modify(uart_inst_t *uart, int effect_id, uint8_t param, uint16_t value);
 
 
 #endif //FFB_MIDI_H

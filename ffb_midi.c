@@ -1,5 +1,42 @@
 #include "ffb_midi.h"
 
+enum MidiEffectType effects_assigned[EFFECT_MEMORY_START + EFFECT_MEMORY_SIZE] = { 0 };
+
+int ffb_midi_get_free_effect_id()
+{
+    for (int i = EFFECT_MEMORY_START; i < EFFECT_MEMORY_START + EFFECT_MEMORY_SIZE; i++)
+    {
+        if (effects_assigned[i] == MIDI_ET_NONE) { return i; }
+    }
+
+    return -1;
+}
+
+size_t ffb_midi_get_num_available_effects()
+{
+    size_t num_free = 0;
+
+    for (int i = EFFECT_MEMORY_START; i < EFFECT_MEMORY_START + EFFECT_MEMORY_SIZE; i++)
+    {
+        if (effects_assigned[i] == MIDI_ET_NONE) { num_free++; }
+    }
+
+    return num_free;
+}
+
+bool last_add_succeeded;
+
+bool ffb_midi_last_add_succeeded()
+{
+    return last_add_succeeded;
+}
+
+uint8_t last_assigned_effect_id;
+
+uint8_t ffb_midi_last_assigned_effect_id()
+{
+    return last_assigned_effect_id;
+}
 
 void ffb_midi_init(uart_inst_t *uart)
 {
@@ -92,8 +129,16 @@ Since the MSB is reserved, we get 7 bits of real data per MIDI byte.
 static inline uint8_t lo7(uint16_t val) { return val & 0x7f; }
 static inline uint8_t hi7(uint16_t val) { return (val >> 7) & 0x7f; }
 
-void ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect)
+int ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect)
 {
+    // Get an effect id (and make sure we have enough room)
+    int effect_id = ffb_midi_get_free_effect_id();
+    if (effect_id < 0)
+    {
+        last_add_succeeded = false;
+        return effect_id;
+    }
+
     uint8_t effect_data[33] = {
         0xf0,                           // 0: SysEx start - effect data
         0x00, 0x01, 0x0a, 0x01, 0x23,   // 1..5: Effect header
@@ -109,13 +154,13 @@ void ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect)
 
     switch (effect->type)
     {
-        case CONSTANT:
-        case SINE:
-        case SQUARE:
-        case RAMP:
-        case TRIANGLE:
-        case SAWTOOTHDOWN:
-        case SAWTOOTHUP:
+        case MIDI_ET_CONSTANT:
+        case MIDI_ET_SINE:
+        case MIDI_ET_SQUARE:
+        case MIDI_ET_RAMP:
+        case MIDI_ET_TRIANGLE:
+        case MIDI_ET_SAWTOOTHDOWN:
+        case MIDI_ET_SAWTOOTHUP:
 
             effect_data[12] = lo7(effect->direction);   // 12, 13: direction
             effect_data[13] = hi7(effect->direction);
@@ -141,9 +186,9 @@ void ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect)
 
             break;
 
-        case SPRING:
-        case DAMPER:
-        case INERTIA:
+        case MIDI_ET_SPRING:
+        case MIDI_ET_DAMPER:
+        case MIDI_ET_INERTIA:
 
             effect_data[12] = effect->strength_x;
             effect_data[13] = 0x00;
@@ -157,7 +202,7 @@ void ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect)
 
             break;
 
-        case FRICTION:
+        case MIDI_ET_FRICTION:
 
             effect_data[12] = effect->strength_x;
             effect_data[13] = 0x00;
@@ -179,23 +224,44 @@ void ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect)
     effect_data[next_index++] = 0xf7; // SysEx end
 
     uart_write_blocking(uart, effect_data, next_index);
+
+    last_add_succeeded = true;
+    last_assigned_effect_id = effect_id;
+    effects_assigned[effect_id] = effect->type;
+    return effect_id;
 }
 
-void ffb_midi_play(uart_inst_t *uart, uint8_t effect_id)
+void ffb_midi_erase(uart_inst_t *uart, int effect_id)
 {
-    uint8_t msg[3] = { 0xb5, 0x20, effect_id };
+    if (effect_id < 0) { return; }
+
+    uint8_t msg[3] = { 0xb5, 0x10, effect_id & 0x7f };
+    uart_write_blocking(uart, msg, sizeof(msg));
+
+    effects_assigned[effect_id] = MIDI_ET_NONE;
+}
+
+void ffb_midi_play(uart_inst_t *uart, int effect_id)
+{
+    if (effect_id < 0) { return; }
+
+    uint8_t msg[3] = { 0xb5, 0x20, effect_id & 0x7f };
     uart_write_blocking(uart, msg, sizeof(msg));
 }
 
-void ffb_midi_stop(uart_inst_t *uart, uint8_t effect_id)
+void ffb_midi_stop(uart_inst_t *uart, int effect_id)
 {
-    uint8_t msg[3] = { 0xb5, 0x30, effect_id };
+    if (effect_id < 0) { return; }
+
+    uint8_t msg[3] = { 0xb5, 0x30, effect_id & 0x7f };
     uart_write_blocking(uart, msg, sizeof(msg));
 }
 
-void ffb_midi_modify(uart_inst_t *uart, uint8_t effect_id, uint8_t param, uint16_t value)
+void ffb_midi_modify(uart_inst_t *uart, int effect_id, uint8_t param, uint16_t value)
 {
+    if (effect_id < 0) { return; }
+
     uint8_t msg[6] = {
-        0xb5, param, effect_id, 0xa5, lo7(value), hi7(value) };
+        0xb5, param, effect_id & 0x7f, 0xa5, lo7(value), hi7(value) };
     uart_write_blocking(uart, msg, sizeof(msg));
 }

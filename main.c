@@ -157,7 +157,7 @@ int main()
     pio_sm_set_enabled(pio, sm, true);
 
     struct Effect sineEffect = {
-        .type = SINE,
+        .type = MIDI_ET_SINE,
         .duration = 1000,
         .button_mask = 0,
         .direction = 45,
@@ -172,7 +172,7 @@ int main()
     };
 
     struct Effect wheelEmuSpringEffect = {
-        .type = SPRING,
+        .type = MIDI_ET_SPRING,
         .duration = 0,
         .button_mask = 0,
         .strength_x = 0,
@@ -182,7 +182,7 @@ int main()
     };
 
     struct Effect lightSpringEffect = {
-        .type = SPRING,
+        .type = MIDI_ET_SPRING,
         .duration = 0,
         .button_mask = 0,
         .strength_x = 0x30,
@@ -192,7 +192,7 @@ int main()
     };
 
     struct Effect frictionEffect = {
-        .type = FRICTION,
+        .type = MIDI_ET_FRICTION,
         .duration = 0,
         .button_mask = 0,
         .strength_x = 0,
@@ -200,7 +200,7 @@ int main()
     };
 
     struct Effect kickbackEffect = {
-        .type = CONSTANT,
+        .type = MIDI_ET_CONSTANT,
         .duration = 500,
         .button_mask = 0x01,
         .direction = 0,
@@ -215,7 +215,7 @@ int main()
     };
 
     struct Effect rumbleEffect = {
-        .type = TRIANGLE,
+        .type = MIDI_ET_TRIANGLE,
         .duration = 1000,
         .button_mask = 0,
         .direction = 90,
@@ -230,7 +230,7 @@ int main()
     };
 
     struct Effect testEffect = {
-        .type = SINE,
+        .type = MIDI_ET_SINE,
         .duration = 0,
         .button_mask = 0x100,
         .direction = 90,
@@ -244,10 +244,11 @@ int main()
         .amplitude = 0x7f,
     };
 
-    ffb_midi_define_effect(uart0, &lightSpringEffect); // effect 2
-    ffb_midi_define_effect(uart0, &kickbackEffect); // effect 3
-    ffb_midi_define_effect(uart0, &rumbleEffect); // effect 4
-    ffb_midi_define_effect(uart0, &testEffect); // effect 5
+    /*
+    int effect_id_spring = ffb_midi_define_effect(uart0, &lightSpringEffect);
+    int effect_id_kickback = ffb_midi_define_effect(uart0, &kickbackEffect);
+    int effect_id_rumble = ffb_midi_define_effect(uart0, &rumbleEffect);
+    int effect_id_test = ffb_midi_define_effect(uart0, &testEffect);
 
     ffb_midi_play(uart0, 2);
 
@@ -256,6 +257,7 @@ int main()
     bool btnB_old;
     bool btnC_old;
     bool btnD_old;
+    */
 
     // Main USB loop
     while (1)
@@ -263,6 +265,7 @@ int main()
         tud_task(); // tinyusb device task
         hid_task();
 
+        /*
         bool btnA = (joystickState.buttons & 0x0010) == 0;
         bool btnB = (joystickState.buttons & 0x0020) == 0;
         bool btnC = (joystickState.buttons & 0x0040) == 0;
@@ -294,12 +297,14 @@ int main()
 
         if (change)
         {
-            ffb_midi_modify(uart0, 5, MODIFY_SAMPLE_RATE, new_value);
+            ffb_midi_modify(uart0, effect_id_test, MODIFY_SAMPLE_RATE, new_value);
         }
 
         btnA_old = btnA;
         btnB_old = btnB;
         btnC_old = btnC;
         btnD_old = btnD;
+
+        */
     }
 }

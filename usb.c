@@ -60,6 +60,11 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id,
     return 0;
 }
 
+static inline uint16_t join16(uint8_t first, uint8_t second)
+{
+    return ((uint16_t) first) | (((uint16_t) second) << 8);
+}
+
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
         hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
 {
@@ -71,6 +76,68 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
         {
             switch(report_id)
             {
+                case REPORT_ID_OUTPUT_SET_EFFECT:
+                {
+                    uint8_t effect_id       = buffer[0];
+                    uint8_t effect_type_usb = buffer[1];
+                    uint16_t duration       = join16(buffer[2], buffer[3]);
+                    uint16_t trig_interval  = join16(buffer[4], buffer[5]);
+                    uint16_t sample_period  = join16(buffer[6], buffer[7]);
+                    uint8_t gain            = buffer[8];
+                    uint8_t trig_button     = buffer[9];
+                    bool ax0_enable         = (buffer[10] >> 7) & 0x01;
+                    bool ax1_enable         = (buffer[10] >> 6) & 0x01;
+                    bool dir_enable         = (buffer[10] >> 5) & 0x01;
+                    uint8_t direction_x     = buffer[11];
+                    uint8_t direction_y     = buffer[12];
+                    uint16_t direction_deg  = join16(buffer[11], buffer[12]);
+                    uint16_t start_delay    = join16(buffer[13], buffer[14]);
+
+                    uint8_t effect_type_midi = effect_type_usb_to_midi[effect_type_usb];
+
+                    // TODO
+
+                    ffb_midi_modify(uart0, effect_id, MODIFY_DURATION, duration);
+
+                    switch (effect_type_midi)
+                    {
+                        case MIDI_ET_CONSTANT:
+                        case MIDI_ET_SINE:
+                        case MIDI_ET_SQUARE:
+                        case MIDI_ET_RAMP:
+                        case MIDI_ET_TRIANGLE:
+                        case MIDI_ET_SAWTOOTHDOWN:
+                        case MIDI_ET_SAWTOOTHUP:
+
+                            ffb_midi_modify(uart0, effect_id, MODIFY_GAIN, (uint8_t) gain);
+                            break;
+                    }
+
+                    break;
+                }
+
+                case REPORT_ID_OUTPUT_SET_PERIODIC:
+                {
+                    uint8_t effect_id   = buffer[0];
+                    uint8_t magnitude   = buffer[1];
+                    int8_t offset       = (int8_t) buffer[2];
+                    uint8_t phase       = buffer[3];
+                    uint16_t period     = join16(buffer[4], buffer[5]);
+
+                    // TODO: FFB Pro doesn't support offset or phase.
+                    // adapt-ffb-joy works around this by switching between waveforms
+                    // (apparently effect type 3 on the FFB Pro is a cosine?!)
+
+                    uint16_t frequency = 1;
+                    if (period <= 13) { frequency = 77; }
+                    else if (period < 1000) { frequency = ((2000 / period) + 1) / 2; }
+
+                    ffb_midi_modify(uart0, effect_id, MODIFY_FREQUENCY, frequency);
+                    ffb_midi_modify(uart0, effect_id, MODIFY_MAGNITUDE, magnitude);
+
+                    break;
+                }
+
                 case REPORT_ID_OUTPUT_EFFECT_OPERATION:
                 {
                     uint8_t effect_id = buffer[0];
@@ -95,6 +162,14 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                 {
                     uint8_t effect_id = buffer[0];
                     ffb_midi_erase(uart0, effect_id);
+
+                    break;
+                }
+
+                case REPORT_ID_OUTPUT_DEVICE_GAIN:
+                {
+                    uint8_t device_gain = buffer[0];
+                    ffb_midi_modify(uart0, 0x7f, MODIFY_DEVICEGAIN, device_gain);
                 }
             }
 
@@ -112,7 +187,9 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                         .duration = 0,
                         .button_mask = 0,
                         .direction = 0,
-                        .strength = 0x7f,
+                        .gain = 0x7f,
+                        .strength_x = 0,
+                        .strength_y = 0,
                         .sample_rate = 100,
                         .attack = 0x7f,
                         .fade = 0x7f,

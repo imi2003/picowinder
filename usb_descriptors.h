@@ -127,9 +127,9 @@
         HID_USAGE(HID_USAGE_PID_TRIGGER_REPEAT_INTERVAL), \
         HID_USAGE(HID_USAGE_PID_SAMPLE_PERIOD), \
         HID_LOGICAL_MIN(0), \
-        HID_LOGICAL_MAX_N(32767, 2), \
+        HID_LOGICAL_MAX_N(0x3fff, 2), \
         HID_PHYSICAL_MIN(0), \
-        HID_PHYSICAL_MAX_N(32767, 2), \
+        HID_PHYSICAL_MAX_N(0x3fff, 2), \
         HID_UNIT_N(4099, 2), \
         HID_UNIT_EXPONENT(-3), \
         HID_REPORT_SIZE(16), \
@@ -141,7 +141,7 @@
         HID_UNIT_EXPONENT(0), \
         HID_UNIT(0), \
         HID_LOGICAL_MIN(0), \
-        HID_LOGICAL_MAX_N(255, 2), \
+        HID_LOGICAL_MAX(0x7f), \
         HID_PHYSICAL_MIN(0), \
         HID_PHYSICAL_MAX_N(10000, 2), \
         HID_REPORT_SIZE(8), \
@@ -176,6 +176,7 @@
         HID_USAGE(HID_USAGE_PID_DIRECTION_ENABLE), \
         HID_REPORT_COUNT(1), \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        \
         HID_REPORT_COUNT(5), \
         HID_OUTPUT(HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE), \
         \
@@ -569,7 +570,7 @@
         /* Device Gain */ \
         HID_USAGE(HID_USAGE_PID_DEVICE_GAIN), \
         HID_LOGICAL_MIN(0), \
-        HID_LOGICAL_MAX(255), \
+        HID_LOGICAL_MAX(0x7f), \
         HID_REPORT_SIZE(8), \
         HID_REPORT_COUNT(1), \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \

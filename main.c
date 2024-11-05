@@ -156,21 +156,6 @@ int main()
     // This one stays on, loops, and keeps firing IRQs.
     pio_sm_set_enabled(pio, sm, true);
 
-    struct Effect sineEffect = {
-        .type = MIDI_ET_SINE,
-        .duration = 1000,
-        .button_mask = 0,
-        .direction = 45,
-        .strength = 0x7f,
-        .sample_rate = 100,
-        .attack = 0x7f,
-        .fade = 0x7f,
-        .attack_time = 0,
-        .fade_time = 0,
-        .frequency = 2,
-        .amplitude = 0x7f,
-    };
-
     struct Effect wheelEmuSpringEffect = {
         .type = MIDI_ET_SPRING,
         .duration = 0,
@@ -199,12 +184,12 @@ int main()
         .strength_y = 0x7f,
     };
 
-    struct Effect kickbackEffect = {
+    struct Effect kickbackInitEffect = {
         .type = MIDI_ET_CONSTANT,
-        .duration = 500,
-        .button_mask = 0x01,
+        .duration = 80,
+        .button_mask = 0x00,
         .direction = 0,
-        .strength = 0x5f,
+        .gain = 0x7f,
         .sample_rate = 100,
         .attack = 0x7f,
         .fade = 0x00,
@@ -214,50 +199,27 @@ int main()
         .amplitude = 0x7f,
     };
 
-    struct Effect rumbleEffect = {
-        .type = MIDI_ET_TRIANGLE,
-        .duration = 1000,
-        .button_mask = 0,
-        .direction = 90,
-        .strength = 0x7f,
-        .sample_rate = 100,
-        .attack = 0,
-        .fade = 0x7f,
-        .attack_time = 0,
-        .fade_time = 1,
-        .frequency = 2,
-        .amplitude = 0x7f,
-    };
-
-    struct Effect testEffect = {
-        .type = MIDI_ET_SINE,
+    struct Effect kickbackSustainEffect = {
+        .type = MIDI_ET_CONSTANT,
         .duration = 0,
-        .button_mask = 0x100,
-        .direction = 90,
-        .strength = 0x7f,
+        .button_mask = 0x00,
+        .direction = 0,
+        .gain = 0x30,
         .sample_rate = 100,
         .attack = 0x7f,
-        .fade = 0x7f,
+        .fade = 0x00,
         .attack_time = 0,
         .fade_time = 0,
-        .frequency = 2,
+        .frequency = 1,
         .amplitude = 0x7f,
     };
 
-    /*
     int effect_id_spring = ffb_midi_define_effect(uart0, &lightSpringEffect);
-    int effect_id_kickback = ffb_midi_define_effect(uart0, &kickbackEffect);
-    int effect_id_rumble = ffb_midi_define_effect(uart0, &rumbleEffect);
-    int effect_id_test = ffb_midi_define_effect(uart0, &testEffect);
-
-    ffb_midi_play(uart0, 2);
+    int effect_id_kickback_init = ffb_midi_define_effect(uart0, &kickbackInitEffect);
+    int effect_id_kickback_sustain = ffb_midi_define_effect(uart0, &kickbackSustainEffect);
+    ffb_midi_play(uart0, effect_id_spring);
 
     bool fire_old;
-    bool btnA_old;
-    bool btnB_old;
-    bool btnC_old;
-    bool btnD_old;
-    */
 
     // Main USB loop
     while (1)
@@ -265,46 +227,16 @@ int main()
         tud_task(); // tinyusb device task
         hid_task();
 
-        /*
-        bool btnA = (joystickState.buttons & 0x0010) == 0;
-        bool btnB = (joystickState.buttons & 0x0020) == 0;
-        bool btnC = (joystickState.buttons & 0x0040) == 0;
-        bool btnD = (joystickState.buttons & 0x0080) == 0;
-
-        uint16_t new_value = 0;
-        bool change = false;
-
-        if (btnA && !btnA_old)
+        bool fire = (joystickState.buttons & 0x0001) == 0;
+        if (fire && !fire_old)
         {
-            new_value = 1;
-            change = true;
+            ffb_midi_play(uart0, effect_id_kickback_init);
+            ffb_midi_play(uart0, effect_id_kickback_sustain);
         }
-        if (btnB && !btnB_old)
+        else if (!fire && fire_old)
         {
-            new_value = 3;
-            change = true;
+            ffb_midi_stop(uart0, effect_id_kickback_sustain);
         }
-        if (btnC && !btnC_old)
-        {
-            new_value = 5;
-            change = true;
-        }
-        if (btnD && !btnD_old)
-        {
-            new_value = 1000;
-            change = true;
-        }
-
-        if (change)
-        {
-            ffb_midi_modify(uart0, effect_id_test, MODIFY_SAMPLE_RATE, new_value);
-        }
-
-        btnA_old = btnA;
-        btnB_old = btnB;
-        btnC_old = btnC;
-        btnD_old = btnD;
-
-        */
+        fire_old = fire;
     }
 }

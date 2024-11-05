@@ -164,7 +164,7 @@ int ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect)
 
             effect_data[12] = lo7(effect->direction);   // 12, 13: direction
             effect_data[13] = hi7(effect->direction);
-            effect_data[14] = effect->strength;         // 14: strength
+            effect_data[14] = effect->gain;             // 14: gain
             effect_data[15] = lo7(effect->sample_rate); // 15, 16: sample rate
             effect_data[16] = hi7(effect->sample_rate);
             effect_data[17] = 0x10;

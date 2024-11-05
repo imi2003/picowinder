@@ -40,7 +40,7 @@ struct Effect
 
     // Constant/Sine/Square/Ramp/Triangle only
     uint16_t direction; // in degrees
-    uint8_t strength;
+    uint8_t gain;
     uint8_t sample_rate; // in Hz; default is generally 100
     uint8_t attack;
     uint8_t fade;
@@ -62,15 +62,17 @@ struct Effect
 #define MODIFY_DURATION     0x40
 
 #define MODIFY_DIRECTION    0x48
-#define MODIFY_STRENGTH     0x4c
+#define MODIFY_GAIN         0x4c
 #define MODIFY_SAMPLE_RATE  0x50
 #define MODIFY_ATTACK_TIME  0x5c
 #define MODIFY_FADE_TIME    0x60    // TODO verify
 #define MODIFY_ATTACK       0x64
+#define MODIFY_MAGNITUDE    0x68
 #define MODIFY_FADE         0x6c
 #define MODIFY_FREQUENCY    0x70
 #define MODIFY_AMPLITUDE1   0x74    // TODO figure this one out
 #define MODIFY_AMPLITUDE2   0x78    // TODO figure this one out
+#define MODIFY_DEVICEGAIN   0x7c
 
 #define MODIFY_STRENGTH_X   0x48
 #define MODIFY_STRENGTH_Y   0x4c

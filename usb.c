@@ -92,18 +92,17 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                     uint8_t direction_y     = buffer[12];
                     uint16_t start_delay    = join16(buffer[13], buffer[14]);
 
-                    uint8_t effect_type_midi = effect_type_usb_to_midi[effect_type_usb];
-                    
-                    // TODO axes enable
-                    uint16_t direction_midi = 0;
-                    if (dir_enable)
-                    {
-                        // map 0-180 to 0-360
-                        direction_midi = ((uint16_t)direction_x) << 1;
-                    }
+                    // TODO use trigger interval
+                    // TODO use sample period
+                    // TODO use trigger button
+                    // TODO use ax0 enable
+                    // TODO use ax1 enable
 
-                    // TODO
-                    ffb_midi_modify(uart0, effect_id, MODIFY_DURATION, duration);
+                    uint8_t effect_type_midi = effect_type_usb_to_midi[effect_type_usb];
+
+                    // MIDI duration is in "units of 2 ms"
+                    uint16_t duration_midi = duration >> 1;
+                    ffb_midi_modify(uart0, effect_id, MODIFY_DURATION, duration_midi);
 
                     switch (effect_type_midi)
                     {
@@ -116,9 +115,14 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                         case MIDI_ET_SAWTOOTHUP:
 
                             ffb_midi_modify(uart0, effect_id, MODIFY_GAIN, gain);
+                            
+                            // TODO axes enable
+                            uint16_t direction_midi = 0;
 
                             if (dir_enable)
                             {
+                                // map 0-180 to 0-360
+                                direction_midi = ((uint16_t)direction_x) << 1;
                                 ffb_midi_modify(uart0, effect_id, MODIFY_DIRECTION, direction_midi);
                             }
                             break;

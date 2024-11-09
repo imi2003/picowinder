@@ -2,7 +2,7 @@
 #define USB_REPORT_IDS_H
 
 
-#define REPORT_ID_INPUT                      1
+#define REPORT_ID_INPUT_JOYSTICK             1
 
 #define REPORT_ID_OUTPUT_SET_EFFECT          2
 #define REPORT_ID_OUTPUT_SET_ENVELOPE        3

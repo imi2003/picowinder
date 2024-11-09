@@ -6,7 +6,12 @@
 
 #include "hid_pid.h"
 
-#define SIDEWINDER_REPORT_DESC_INPUT(...) \
+
+/////////////////////////////////////////////////////////////////////
+// Input Report: Joystick postition, buttons, etc.
+/////////////////////////////////////////////////////////////////////
+
+#define SIDEWINDER_REPORT_DESC_INPUT_JOYSTICK(...) \
     HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), \
     HID_USAGE(HID_USAGE_DESKTOP_JOYSTICK), \
     HID_COLLECTION(HID_COLLECTION_APPLICATION), \
@@ -79,7 +84,7 @@
 
 
 /////////////////////////////////////////////////////////////////////
-// Output Report 1: Set Effect - define params for an effect
+// Output Report: Set Effect - define params for an effect
 /////////////////////////////////////////////////////////////////////
 
 #define SIDEWINDER_REPORT_DESC_OUTPUT_SET_EFFECT(...) \
@@ -183,17 +188,17 @@
         /* Direction */ \
         HID_USAGE(HID_USAGE_PID_DIRECTION), \
         HID_COLLECTION(HID_COLLECTION_LOGICAL), \
-            /* TODO: this part is different from the FFB 2 */ \
-            HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), \
-            HID_USAGE(HID_USAGE_DESKTOP_X), \
-            HID_USAGE(HID_USAGE_DESKTOP_Y), \
-            /* end TODO */ \
+            /* NOTE: The HID spec specifies these should be Joystick usages, but Windows expects Ordinal.*/ \
+            /* TODO: check Linux and try to reconcile */ \
+            HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL), \
+            HID_USAGE(1), \
+            HID_USAGE(2), \
             HID_UNIT(20), \
-            HID_UNIT_EXPONENT(-2), \
+            HID_UNIT_EXPONENT(0), \
             HID_LOGICAL_MIN(0), \
-            HID_LOGICAL_MAX_N(255, 2), \
+            HID_LOGICAL_MAX_N(180, 2), \
             HID_PHYSICAL_MIN(0), \
-            HID_PHYSICAL_MAX(0), \
+            HID_PHYSICAL_MAX_N(360, 2), \
             HID_UNIT(0), \
             HID_REPORT_SIZE(8), \
             HID_REPORT_COUNT(2), \
@@ -244,7 +249,7 @@
         HID_USAGE(HID_USAGE_PID_ATTACK_LEVEL), \
         HID_USAGE(HID_USAGE_PID_FADE_LEVEL), \
         HID_LOGICAL_MIN(0), \
-        HID_LOGICAL_MAX(255), \
+        HID_LOGICAL_MAX_N(255, 2), \
         HID_PHYSICAL_MIN(0), \
         HID_PHYSICAL_MAX_N(10000, 2), \
         HID_REPORT_SIZE(8), \
@@ -318,7 +323,7 @@
         HID_USAGE(HID_USAGE_PID_NEGATIVE_SATURATION), \
         HID_USAGE(HID_USAGE_PID_DEAD_BAND), \
         HID_LOGICAL_MIN(0), \
-        HID_LOGICAL_MAX(255), \
+        HID_LOGICAL_MAX_N(255, 2), \
         HID_PHYSICAL_MIN(0), \
         HID_PHYSICAL_MAX_N(10000, 2), \
         HID_REPORT_SIZE(8), \
@@ -351,7 +356,7 @@
         /* Magnitude */ \
         HID_USAGE(HID_USAGE_PID_MAGNITUDE), \
         HID_LOGICAL_MIN(0), \
-        HID_LOGICAL_MAX(255), \
+        HID_LOGICAL_MAX_N(255, 2), \
         HID_PHYSICAL_MIN(0), \
         HID_PHYSICAL_MAX_N(10000, 2), \
         HID_REPORT_SIZE(8), \
@@ -373,7 +378,7 @@
         HID_UNIT(20), \
         HID_UNIT_EXPONENT(-2), \
         HID_LOGICAL_MIN(0), \
-        HID_LOGICAL_MAX(255), \
+        HID_LOGICAL_MAX_N(255, 2), \
         HID_PHYSICAL_MIN(0), \
         HID_PHYSICAL_MAX(0), \
         HID_REPORT_SIZE(8), \
@@ -612,7 +617,7 @@
             HID_FEATURE(HID_DATA | HID_ARRAY | HID_ABSOLUTE), \
         HID_COLLECTION_END, \
         \
-        /* Byte Count from FF2 descripter omitted, since we don't support custom forces. */ \
+        /* Byte Count from FF2 descriptor omitted, since we don't support custom forces. */ \
         \
     HID_COLLECTION_END
 
@@ -655,9 +660,9 @@
         /* RAM Pool Available */ \
         HID_USAGE(HID_USAGE_PID_RAM_POOL_AVAILABLE), \
         HID_LOGICAL_MIN(0), \
-        HID_LOGICAL_MAX(0), \
         HID_PHYSICAL_MIN(0), \
-        HID_PHYSICAL_MAX(0), \
+        HID_LOGICAL_MAX_N(0xFFFF, 3), \
+        HID_PHYSICAL_MAX_N(0xFFFF, 3), \
         HID_REPORT_SIZE(16), \
         HID_REPORT_COUNT(1), \
         HID_FEATURE(HID_DATA | HID_ARRAY | HID_ABSOLUTE), \
@@ -680,9 +685,9 @@
         HID_REPORT_SIZE(16), \
         HID_REPORT_COUNT(1), \
         HID_LOGICAL_MIN(0), \
-        HID_LOGICAL_MAX(0), \
         HID_PHYSICAL_MIN(0), \
-        HID_PHYSICAL_MAX(0), \
+        HID_LOGICAL_MAX_N(0xFFFF, 3), \
+        HID_PHYSICAL_MAX_N(0xFFFF, 3), \
         HID_FEATURE(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         \
         /* Simultaneous Maximum Effects */ \

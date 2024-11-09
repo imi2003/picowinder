@@ -85,18 +85,24 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                     uint16_t sample_period  = join16(buffer[6], buffer[7]);
                     uint8_t gain            = buffer[8];
                     uint8_t trig_button     = buffer[9];
-                    bool ax0_enable         = (buffer[10] >> 7) & 0x01;
-                    bool ax1_enable         = (buffer[10] >> 6) & 0x01;
-                    bool dir_enable         = (buffer[10] >> 5) & 0x01;
+                    bool ax0_enable         = (buffer[10] >> 0) & 0x01;
+                    bool ax1_enable         = (buffer[10] >> 1) & 0x01;
+                    bool dir_enable         = (buffer[10] >> 2) & 0x01;
                     uint8_t direction_x     = buffer[11];
                     uint8_t direction_y     = buffer[12];
-                    uint16_t direction_deg  = join16(buffer[11], buffer[12]);
                     uint16_t start_delay    = join16(buffer[13], buffer[14]);
 
                     uint8_t effect_type_midi = effect_type_usb_to_midi[effect_type_usb];
+                    
+                    // TODO axes enable
+                    uint16_t direction_midi = 0;
+                    if (dir_enable)
+                    {
+                        // map 0-180 to 0-360
+                        direction_midi = ((uint16_t)direction_x) << 1;
+                    }
 
                     // TODO
-
                     ffb_midi_modify(uart0, effect_id, MODIFY_DURATION, duration);
 
                     switch (effect_type_midi)
@@ -109,9 +115,25 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                         case MIDI_ET_SAWTOOTHDOWN:
                         case MIDI_ET_SAWTOOTHUP:
 
-                            ffb_midi_modify(uart0, effect_id, MODIFY_GAIN, (uint8_t) gain);
+                            ffb_midi_modify(uart0, effect_id, MODIFY_GAIN, gain);
+
+                            if (dir_enable)
+                            {
+                                ffb_midi_modify(uart0, effect_id, MODIFY_DIRECTION, direction_midi);
+                            }
                             break;
                     }
+
+                    break;
+                }
+
+                case REPORT_ID_OUTPUT_SET_CONSTANT:
+                {
+                    uint8_t effect_id = buffer[0];
+                    uint16_t magnitude  = join16(buffer[1], buffer[2]); // 255 to -255
+                    magnitude = (magnitude & 0x1ff) >> 1;
+
+                    ffb_midi_modify(uart0, effect_id, MODIFY_AMPLITUDE1, magnitude);
 
                     break;
                 }

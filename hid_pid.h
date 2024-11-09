@@ -3,6 +3,7 @@
 
 #define HID_USAGE_PAGE_HAPTICS 0x0e
 #define HID_USAGE_SIMPLE_HAPTIC_CONTROLLER  0x01
+#define HID_OUTPUT_N(x, n)     HID_REPORT_ITEM(x, RI_MAIN_OUTPUT        , RI_TYPE_MAIN, n)
 
 // PID Usage Page
 enum
@@ -50,6 +51,14 @@ enum
     HID_USAGE_PID_DEAD_BAND                     = 0x65,
 
     HID_USAGE_PID_DOWNLOAD_FORCE_SAMPLE         = 0x66,
+
+    HID_USAGE_PID_CUSTOM_FORCE_DATA_REPORT          = 0x68,
+    HID_USAGE_PID_CUSTOM_FORCE_DATA                 = 0x69,
+    HID_USAGE_PID_CUSTOM_FORCE_VENDOR_DEFINED_DATA  = 0x6a,
+
+    HID_USAGE_PID_SET_CUSTOM_FORCE_REPORT       = 0x6b,
+    HID_USAGE_PID_CUSTOM_FORCE_DATA_OFFSET      = 0x6c,
+    HID_USAGE_PID_SAMPLE_COUNT                  = 0x6d,
 
     HID_USAGE_PID_SET_PERIODIC_REPORT           = 0x6e,
     HID_USAGE_PID_OFFSET                        = 0x6f,

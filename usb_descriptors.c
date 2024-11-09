@@ -83,8 +83,15 @@ uint8_t const * tud_descriptor_device_cb(void)
 
 uint8_t const desc_hid_report[] =
 {
+    // Windows expects all of the I/O/F reports to be wrapped in an application collection;
+    // otherwise, the device won't be registered as capable of force-feedback.
+    // Linux is fine either way.
+    HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP),
+    HID_USAGE(HID_USAGE_DESKTOP_JOYSTICK),
+    HID_COLLECTION(HID_COLLECTION_APPLICATION),
+
     // Input Reports
-    SIDEWINDER_REPORT_DESC_INPUT                        (HID_REPORT_ID(REPORT_ID_INPUT)),
+    SIDEWINDER_REPORT_DESC_INPUT_JOYSTICK               (HID_REPORT_ID(REPORT_ID_INPUT_JOYSTICK)),
     // Output Reports
     SIDEWINDER_REPORT_DESC_OUTPUT_SET_EFFECT            (HID_REPORT_ID(REPORT_ID_OUTPUT_SET_EFFECT)),
     SIDEWINDER_REPORT_DESC_OUTPUT_SET_ENVELOPE          (HID_REPORT_ID(REPORT_ID_OUTPUT_SET_ENVELOPE)),
@@ -100,6 +107,8 @@ uint8_t const desc_hid_report[] =
     SIDEWINDER_REPORT_DESC_FEATURE_CREATE_NEW_EFFECT    (HID_REPORT_ID(REPORT_ID_FEATURE_CREATE_NEW_EFFECT)),
     SIDEWINDER_REPORT_DESC_FEATURE_BLOCK_LOAD           (HID_REPORT_ID(REPORT_ID_FEATURE_BLOCK_LOAD)),
     SIDEWINDER_REPORT_DESC_FEATURE_POOL_REPORT          (HID_REPORT_ID(REPORT_ID_FEATURE_POOL_REPORT)),
+
+    HID_COLLECTION_END
 };
 
 uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)

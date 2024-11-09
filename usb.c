@@ -65,6 +65,9 @@ static inline uint16_t join16(uint8_t first, uint8_t second)
     return ((uint16_t) first) | (((uint16_t) second) << 8);
 }
 
+#define USB_DURATION_INFINITE 0xffff
+#define MIDI_DURATION_INFINITE 0
+
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
         hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
 {
@@ -100,8 +103,10 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
 
                     uint8_t effect_type_midi = effect_type_usb_to_midi[effect_type_usb];
 
-                    // MIDI duration is in "units of 2 ms"
-                    uint16_t duration_midi = duration >> 1;
+                    // MIDI duration is in "units of 2 ms".
+                    // USB uses the max possible value for infinity. MIDI uses 0.
+                    uint16_t duration_midi = (duration == USB_DURATION_INFINITE) ? MIDI_DURATION_INFINITE : (duration >> 1);
+                    if (duration_midi > 0x3fff) { duration_midi = 0x3fff; } // cap long but finite effects
                     ffb_midi_modify(uart0, effect_id, MODIFY_DURATION, duration_midi);
 
                     switch (effect_type_midi)
@@ -115,7 +120,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                         case MIDI_ET_SAWTOOTHUP:
 
                             ffb_midi_modify(uart0, effect_id, MODIFY_GAIN, gain);
-                            
+
                             // TODO axes enable
                             uint16_t direction_midi = 0;
 

@@ -287,7 +287,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                 case REPORT_ID_OUTPUT_DEVICE_GAIN:
                 {
                     uint8_t device_gain = buffer[0];
-                    ffb_midi_modify(uart0, 0x7f, MODIFY_DEVICEGAIN, device_gain);
+                    ffb_midi_modify(uart0, 0x7f, MODIFY_DEVICE_GAIN, device_gain);
                 }
             }
 

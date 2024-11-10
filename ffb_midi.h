@@ -35,6 +35,7 @@ has any effect. It's possible that this behavior is enabled by some other settin
 struct Effect
 {
     // Common to all effects
+    bool play_immediately;
     enum MidiEffectType type;
     uint16_t duration; // in 2 ms units; 0 = inf
     uint16_t button_mask; // 9-bit button mask; 0 = must play manually
@@ -60,12 +61,11 @@ struct Effect
     uint16_t offset_y;
 };
 
-
 #define MODIFY_DURATION         0x40
+#define MODIFY_BUTTON_MASK      0x44
 
 #define MODIFY_DIRECTION        0x48
 #define MODIFY_GAIN             0x4c
-#define MODIFY_SAMPLE_RATE      0x50
 #define MODIFY_ATTACK_TIME      0x5c
 #define MODIFY_FADE_TIME        0x60    // TODO verify
 #define MODIFY_ATTACK_LEVEL     0x64
@@ -74,7 +74,7 @@ struct Effect
 #define MODIFY_FREQUENCY        0x70
 #define MODIFY_AMPLITUDE        0x74    // is also Start value for Ramp
 #define MODIFY_RAMP_END         0x78
-#define MODIFY_DEVICEGAIN       0x7c
+#define MODIFY_DEVICE_GAIN      0x7c
 
 #define MODIFY_STRENGTH_X   0x48
 #define MODIFY_STRENGTH_Y   0x4c

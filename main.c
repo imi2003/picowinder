@@ -157,6 +157,7 @@ int main()
     pio_sm_set_enabled(pio, sm, true);
 
     struct Effect wheelEmuSpringEffect = {
+        .play_immediately = false,
         .type = MIDI_ET_SPRING,
         .duration = 0,
         .button_mask = 0,
@@ -167,6 +168,7 @@ int main()
     };
 
     struct Effect lightSpringEffect = {
+        .play_immediately = false,
         .type = MIDI_ET_SPRING,
         .duration = 0,
         .button_mask = 0,
@@ -177,6 +179,7 @@ int main()
     };
 
     struct Effect frictionEffect = {
+        .play_immediately = false,
         .type = MIDI_ET_FRICTION,
         .duration = 0,
         .button_mask = 0,
@@ -185,6 +188,7 @@ int main()
     };
 
     struct Effect kickbackEffect = {
+        .play_immediately = false,
         .type = MIDI_ET_CONSTANT,
         .duration = 0,
         .button_mask = 0x00,
@@ -201,8 +205,9 @@ int main()
     };
 
     int effect_id_spring = ffb_midi_define_effect(uart0, &lightSpringEffect);
+    //ffb_midi_play(uart0, effect_id_spring);
+
     int effect_id_kickback = ffb_midi_define_effect(uart0, &kickbackEffect);
-    ffb_midi_play(uart0, effect_id_spring);
 
     bool fire_old;
 

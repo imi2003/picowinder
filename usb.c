@@ -45,9 +45,8 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id,
                     // 16-bit RAM pool size: we'll just give the total number of effects
                     buffer[0] = EFFECT_MEMORY_SIZE;
                     buffer[1] = 0x00;
-                    // Num simultaneous effects: not sure how many the Sidewinder can actually
-                    // play at once, so we'll give the total number we can store
-                    buffer[2] = EFFECT_MEMORY_SIZE;
+                    // Num simultaneous effects
+                    buffer[2] = MAX_SIMULTANEOUS_EFFECTS;
                     // Bit 7: 1 for supporting shared managed pool, 0 for not
                     // Bit 6: 1 for supporting shared parameter blocks, 0 for not
                     buffer[3] = 0xff;

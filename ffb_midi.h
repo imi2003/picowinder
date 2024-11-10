@@ -23,6 +23,7 @@ enum MidiEffectType
 
 #define EFFECT_MEMORY_SIZE 39 // max effect ID is 40, per descriptor
 #define EFFECT_MEMORY_START 2
+#define MAX_SIMULTANEOUS_EFFECTS 10
 
 /*
 TODO investigate: fade time property isn't behaving as expected.

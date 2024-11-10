@@ -43,8 +43,9 @@ struct Effect
     uint16_t direction; // in degrees
     uint8_t gain;
     uint8_t sample_rate; // in Hz; default is generally 100
-    uint8_t attack;
-    uint8_t fade;
+    uint8_t attack_level;
+    uint8_t sustain_level;
+    uint8_t fade_level;
     uint16_t attack_time;
     uint16_t fade_time;
     uint16_t frequency;
@@ -60,20 +61,20 @@ struct Effect
 };
 
 
-#define MODIFY_DURATION     0x40
+#define MODIFY_DURATION         0x40
 
-#define MODIFY_DIRECTION    0x48
-#define MODIFY_GAIN         0x4c
-#define MODIFY_SAMPLE_RATE  0x50
-#define MODIFY_ATTACK_TIME  0x5c
-#define MODIFY_FADE_TIME    0x60    // TODO verify
-#define MODIFY_ATTACK_LEVEL 0x64
-#define MODIFY_MAGNITUDE    0x68
-#define MODIFY_FADE_LEVEL   0x6c
-#define MODIFY_FREQUENCY    0x70
-#define MODIFY_AMPLITUDE1   0x74    // TODO figure this one out
-#define MODIFY_AMPLITUDE2   0x78    // TODO figure this one out
-#define MODIFY_DEVICEGAIN   0x7c
+#define MODIFY_DIRECTION        0x48
+#define MODIFY_GAIN             0x4c
+#define MODIFY_SAMPLE_RATE      0x50
+#define MODIFY_ATTACK_TIME      0x5c
+#define MODIFY_FADE_TIME        0x60    // TODO verify
+#define MODIFY_ATTACK_LEVEL     0x64
+#define MODIFY_SUSTAIN_LEVEL    0x68
+#define MODIFY_FADE_LEVEL       0x6c
+#define MODIFY_FREQUENCY        0x70
+#define MODIFY_AMPLITUDE        0x74    // is also Start value for Ramp
+#define MODIFY_RAMP_END         0x78
+#define MODIFY_DEVICEGAIN       0x7c
 
 #define MODIFY_STRENGTH_X   0x48
 #define MODIFY_STRENGTH_Y   0x4c
@@ -91,7 +92,7 @@ void ffb_midi_set_autocenter(uart_inst_t *uart, bool enabled);
 int ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect);
 void ffb_midi_erase(uart_inst_t *uart, int effect_id);
 void ffb_midi_play(uart_inst_t *uart, int effect_id);
-void ffb_midi_stop(uart_inst_t *uart, int effect_id);
+void ffb_midi_pause(uart_inst_t *uart, int effect_id);
 void ffb_midi_modify(uart_inst_t *uart, int effect_id, uint8_t param, uint16_t value);
 
 

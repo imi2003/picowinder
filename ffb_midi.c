@@ -167,15 +167,15 @@ int ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect)
             effect_data[14] = effect->gain;             // 14: gain
             effect_data[15] = lo7(effect->sample_rate); // 15, 16: sample rate
             effect_data[16] = hi7(effect->sample_rate);
-            effect_data[17] = 0x10;
+            effect_data[17] = 0x10;                     // 17, 18: truncate; 0x4e10 = 10000 = full waveform
             effect_data[18] = 0x4e;
-            effect_data[19] = effect->attack;           // 19: Envelope Attack Start Level
+            effect_data[19] = effect->attack_level;     // 19: Envelope Attack Start Level
             effect_data[20] = lo7(effect->attack_time); // 20, 21: Envelope Attack Time
             effect_data[21] = hi7(effect->attack_time);
-            effect_data[22] = 0x7f;                     // 22: not used; must be 0x7f
+            effect_data[22] = effect->sustain_level;    // 22: Envelope Sustain Level
             effect_data[23] = lo7(effect->fade_time);   // 23, 24: Envelope Fade Time
             effect_data[24] = hi7(effect->fade_time);
-            effect_data[25] = effect->fade;             // 25: Envelope Fade End Level
+            effect_data[25] = effect->fade_level;       // 25: Envelope Fade End Level
             effect_data[26] = lo7(effect->frequency);   // 26, 27: Frequency
             effect_data[27] = hi7(effect->frequency);
             effect_data[28] = lo7(effect->amplitude);   // 28, 29: Amplitude
@@ -249,7 +249,7 @@ void ffb_midi_play(uart_inst_t *uart, int effect_id)
     uart_write_blocking(uart, msg, sizeof(msg));
 }
 
-void ffb_midi_stop(uart_inst_t *uart, int effect_id)
+void ffb_midi_pause(uart_inst_t *uart, int effect_id)
 {
     if (effect_id < 0) { return; }
 

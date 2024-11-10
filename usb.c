@@ -210,7 +210,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                     uint16_t magnitude  = join16(buffer[1], buffer[2]); // 255 to -255
                     magnitude = (magnitude & 0x1ff) >> 1;
 
-                    ffb_midi_modify(uart0, effect_id, MODIFY_AMPLITUDE1, magnitude);
+                    ffb_midi_modify(uart0, effect_id, MODIFY_AMPLITUDE, magnitude);
 
                     break;
                 }
@@ -220,8 +220,8 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                 {
                     struct t_set_ramp_report *report = (struct t_set_ramp_report*)(buffer);
 
-                    ffb_midi_modify(uart0, report->effect_id, MODIFY_AMPLITUDE1, report->start);
-                    ffb_midi_modify(uart0, report->effect_id, MODIFY_AMPLITUDE2, report->end);
+                    ffb_midi_modify(uart0, report->effect_id, MODIFY_AMPLITUDE, report->start);
+                    ffb_midi_modify(uart0, report->effect_id, MODIFY_RAMP_END, report->end);
 
                     break;
                 }
@@ -243,7 +243,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                     else if (period < 1000) { frequency = ((2000 / period) + 1) / 2; }
 
                     ffb_midi_modify(uart0, effect_id, MODIFY_FREQUENCY, frequency);
-                    ffb_midi_modify(uart0, effect_id, MODIFY_MAGNITUDE, magnitude);
+                    ffb_midi_modify(uart0, effect_id, MODIFY_SUSTAIN_LEVEL, magnitude);
 
                     break;
                 }
@@ -261,7 +261,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                             ffb_midi_play(uart0, effect_id);
                             break;
                         case 3: // Stop
-                            ffb_midi_stop(uart0, effect_id);
+                            ffb_midi_pause(uart0, effect_id);
                             break;
                     }
 

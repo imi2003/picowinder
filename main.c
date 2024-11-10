@@ -184,39 +184,24 @@ int main()
         .strength_y = 0x7f,
     };
 
-    struct Effect kickbackInitEffect = {
-        .type = MIDI_ET_CONSTANT,
-        .duration = 80,
-        .button_mask = 0x00,
-        .direction = 0,
-        .gain = 0x7f,
-        .sample_rate = 100,
-        .attack = 0x7f,
-        .fade = 0x00,
-        .attack_time = 0,
-        .fade_time = 0,
-        .frequency = 1,
-        .amplitude = 0x7f,
-    };
-
-    struct Effect kickbackSustainEffect = {
+    struct Effect kickbackEffect = {
         .type = MIDI_ET_CONSTANT,
         .duration = 0,
         .button_mask = 0x00,
         .direction = 0,
-        .gain = 0x30,
+        .gain = 0x7f,
         .sample_rate = 100,
-        .attack = 0x7f,
-        .fade = 0x00,
-        .attack_time = 0,
+        .attack_level = 0x7f,
+        .sustain_level = 0x20,
+        .fade_level = 0x00,
+        .attack_time = 400,
         .fade_time = 0,
         .frequency = 1,
         .amplitude = 0x7f,
     };
 
     int effect_id_spring = ffb_midi_define_effect(uart0, &lightSpringEffect);
-    int effect_id_kickback_init = ffb_midi_define_effect(uart0, &kickbackInitEffect);
-    int effect_id_kickback_sustain = ffb_midi_define_effect(uart0, &kickbackSustainEffect);
+    int effect_id_kickback = ffb_midi_define_effect(uart0, &kickbackEffect);
     ffb_midi_play(uart0, effect_id_spring);
 
     bool fire_old;
@@ -230,12 +215,11 @@ int main()
         bool fire = (joystickState.buttons & 0x0001) == 0;
         if (fire && !fire_old)
         {
-            ffb_midi_play(uart0, effect_id_kickback_init);
-            ffb_midi_play(uart0, effect_id_kickback_sustain);
+            ffb_midi_play(uart0, effect_id_kickback);
         }
         else if (!fire && fire_old)
         {
-            ffb_midi_stop(uart0, effect_id_kickback_sustain);
+            ffb_midi_pause(uart0, effect_id_kickback);
         }
         fire_old = fire;
     }

@@ -38,62 +38,14 @@ uint8_t ffb_midi_last_assigned_effect_id()
     return last_assigned_effect_id;
 }
 
-#define MIDI_ALL_EFFECTS 0x7f
-
-void ffb_midi_init(uart_inst_t *uart)
-{
-    const uint8_t start0[] = {
-        0xc5, 0x01 // <ProgramChange> 0x01
-    };
-
-    const uint8_t start1[] = {
-        0xf0, // SysEx begin
-        0x00, 0x01, 0x0a, 0x01, // Effect header
-        0x10, 0x05, 0x6b,
-        0xf7  // SysEx end
-    };
-
-    uart_write_blocking(uart, start0, sizeof(start0));
-    sleep_ms(20);
-    uart_write_blocking(uart, start1, sizeof(start1));
-    sleep_ms(57);
-
-    // Set default values for each effect parameter, for all effects.
-    // TODO: are these really necessary, given we always set all relevant values for each effect we define?
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_DURATION,        11250);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_BUTTON_MASK,     0x21bc); // TODO: ???
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_DIRECTION,       0x7e);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_GAIN,            0x04);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_OFFSET_X,        0x02);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_OFFSET_Y,        0x02);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, 0x58,                   0x3f00); // TODO: 0x58?
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_ATTACK_TIME,     0x3c);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_FADE_TIME,       0x3294);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_ATTACK_LEVEL,    0x35fe); // TODO: ???
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_SUSTAIN_LEVEL,   0x36);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_FADE_LEVEL,      0x28);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_FREQUENCY,       0x2666); // TODO: isn't this way too high?
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_AMPLITUDE,       0xfe);
-    ffb_midi_modify(uart, MIDI_ALL_EFFECTS, MODIFY_DEVICE_GAIN,     0x7f);
-}
-
 void ffb_midi_set_autocenter(uart_inst_t *uart, bool enabled)
 {
-    const uint8_t autocenter_on[] = {
+    uint8_t autocenter_cmd[] = {
             0xc5, 0x01
     };
 
-    const uint8_t autocenter_off[] = {
-            0xc5, 0x06,
-    };
-
-    uart_write_blocking(uart, autocenter_on, sizeof(autocenter_on));
-
-    if (!enabled)
-    {
-        sleep_ms(70);
-        uart_write_blocking(uart, autocenter_off, sizeof(autocenter_off));
-    }
+    autocenter_cmd[1] = enabled ? 0x01 : 0x06; 
+    uart_write_blocking(uart, autocenter_cmd, sizeof(autocenter_cmd));
 }
 
 /*
@@ -221,11 +173,18 @@ void ffb_midi_erase(uart_inst_t *uart, int effect_id)
     effects_assigned[effect_id] = MIDI_ET_NONE;
 }
 
+void ffb_midi_play_solo(uart_inst_t *uart, int effect_id)
+{
+    if (effect_id < 0) { return; }
+
+    uint8_t msg[3] = { 0xb5, 0x00, effect_id & 0x7f };
+    uart_write_blocking(uart, msg, sizeof(msg));
+}
+
 void ffb_midi_play(uart_inst_t *uart, int effect_id)
 {
     if (effect_id < 0) { return; }
 
-    // Note: 0x00 also works. TODO: is 0x00 different (play solo?)
     uint8_t msg[3] = { 0xb5, 0x20, effect_id & 0x7f };
     uart_write_blocking(uart, msg, sizeof(msg));
 }

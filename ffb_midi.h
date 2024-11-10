@@ -37,13 +37,18 @@ struct Effect
     // Common to all effects
     bool play_immediately;
     enum MidiEffectType type;
-    uint16_t duration; // in 2 ms units; 0 = inf
+    uint16_t duration; // in 2 ms units; 0 = infinite
     uint16_t button_mask; // 9-bit button mask; 0 = must play manually
 
     // Constant/Sine/Square/Ramp/Triangle only
     uint16_t direction; // in degrees
     uint8_t gain;
     uint8_t sample_rate; // in Hz; default is generally 100
+    // Note on envelopes: if the effect duration is 0 (infinite), then stopping
+    // and playing the effect will resume it at its previous point in the envelope.
+    // If the effect duration is >0 (finite), stopping and playing it will restart
+    // it at the beginning of the envelope. This is true whether stopping/restarting
+    // manually, or with a button mask.
     uint8_t attack_level;
     uint8_t sustain_level;
     uint8_t fade_level;
@@ -82,15 +87,19 @@ struct Effect
 #define MODIFY_OFFSET_Y     0x54
 
 
+// Use this as an effect ID to manipulate all effects at once
+#define MIDI_ALL_EFFECTS 0x7f
+
+
 int ffb_midi_get_free_effect_id();
 size_t ffb_midi_get_num_available_effects();
 bool ffb_midi_last_add_succeeded();
 uint8_t ffb_midi_last_assigned_effect_id();
 
-void ffb_midi_init(uart_inst_t *uart);
 void ffb_midi_set_autocenter(uart_inst_t *uart, bool enabled);
 int ffb_midi_define_effect(uart_inst_t *uart, struct Effect *effect);
 void ffb_midi_erase(uart_inst_t *uart, int effect_id);
+void ffb_midi_play_solo(uart_inst_t *uart, int effect_id);
 void ffb_midi_play(uart_inst_t *uart, int effect_id);
 void ffb_midi_pause(uart_inst_t *uart, int effect_id);
 void ffb_midi_modify(uart_inst_t *uart, int effect_id, uint8_t param, uint16_t value);

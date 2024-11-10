@@ -132,9 +132,8 @@ int main()
     // The FFB handshake program is done now
     pio_sm_set_enabled(pio, sm, false);
 
-    // Now that the handshake is done, we can send MIDI setup,
-    // and disable the built-in auto-centering spring
-    ffb_midi_init(uart0);
+    // Now that the handshake is done, we can send MIDI commands.
+    // We'll start by disabling the built-in auto-center effect.
     ffb_midi_set_autocenter(uart0, false);
 
     // Read-data PIO program setup
@@ -156,19 +155,18 @@ int main()
     // This one stays on, loops, and keeps firing IRQs.
     pio_sm_set_enabled(pio, sm, true);
 
-    struct Effect wheelEmuSpringEffect = {
-        .play_immediately = false,
-        .type = MIDI_ET_SPRING,
-        .duration = 0,
-        .button_mask = 0,
-        .strength_x = 0,
-        .strength_y = 0x7f,
-        .offset_x = 0,
-        .offset_y = 0,
-    };
+/*
+Most games don't actually support force-feedback, but we can still use the joystick's
+FFB to enhance them. We do so by adding two effects: a light spring effect that is
+(at least in this author's opinion) gentler and more pleasant than the stock auto-center,
+and a kickback effect that plays when the trigger is pulled, and sustains a little while
+the trigger is held.
+*/
+#define EXAMPLE_EFFECTS
+#ifdef EXAMPLE_EFFECTS
 
     struct Effect lightSpringEffect = {
-        .play_immediately = false,
+        .play_immediately = true,
         .type = MIDI_ET_SPRING,
         .duration = 0,
         .button_mask = 0,
@@ -178,38 +176,29 @@ int main()
         .offset_y = 0,
     };
 
-    struct Effect frictionEffect = {
-        .play_immediately = false,
-        .type = MIDI_ET_FRICTION,
-        .duration = 0,
-        .button_mask = 0,
-        .strength_x = 0,
-        .strength_y = 0x7f,
-    };
-
     struct Effect kickbackEffect = {
         .play_immediately = false,
         .type = MIDI_ET_CONSTANT,
-        .duration = 0,
+        .duration = 0x3fff, // must be finite for the envelope to restart when stopping/playing
         .button_mask = 0x00,
         .direction = 0,
         .gain = 0x7f,
         .sample_rate = 100,
         .attack_level = 0x7f,
-        .sustain_level = 0x20,
+        .sustain_level = 0x28,
         .fade_level = 0x00,
-        .attack_time = 400,
+        .attack_time = 80,
         .fade_time = 0,
         .frequency = 1,
         .amplitude = 0x7f,
     };
 
     int effect_id_spring = ffb_midi_define_effect(uart0, &lightSpringEffect);
-    //ffb_midi_play(uart0, effect_id_spring);
-
     int effect_id_kickback = ffb_midi_define_effect(uart0, &kickbackEffect);
 
     bool fire_old;
+
+#endif
 
     // Main USB loop
     while (1)
@@ -217,6 +206,7 @@ int main()
         tud_task(); // tinyusb device task
         hid_task();
 
+#ifdef EXAMPLE_EFFECTS
         bool fire = (joystickState.buttons & 0x0001) == 0;
         if (fire && !fire_old)
         {
@@ -227,5 +217,6 @@ int main()
             ffb_midi_pause(uart0, effect_id_kickback);
         }
         fire_old = fire;
+#endif
     }
 }

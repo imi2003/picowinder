@@ -257,8 +257,10 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                     switch (operation)
                     {
                         case 1: // Start
-                        case 2: // Start Solo (TODO: stop other effects)
                             ffb_midi_play(uart0, effect_id);
+                            break;
+                        case 2: // Start Solo
+                            ffb_midi_play_solo(uart0, effect_id);
                             break;
                         case 3: // Stop
                             ffb_midi_pause(uart0, effect_id);

@@ -6,6 +6,8 @@
 
 #include "hid_pid.h"
 
+#define HID_UNIT_SECONDS 0x1003 // Documented as "Eng Lin:Time" in the PID spec
+
 
 /////////////////////////////////////////////////////////////////////
 // Input Report: Joystick postition, buttons, etc.
@@ -135,7 +137,7 @@
         HID_LOGICAL_MAX_N(0xffff, 3), \
         HID_PHYSICAL_MIN(0), \
         HID_PHYSICAL_MAX_N(0xffff, 3), \
-        HID_UNIT_N(4099, 2), \
+        HID_UNIT_N(HID_UNIT_SECONDS, 2), \
         HID_UNIT_EXPONENT(-3), \
         HID_REPORT_SIZE(16), \
         HID_REPORT_COUNT(3), \
@@ -210,7 +212,7 @@
         /* Start Delay */ \
         HID_USAGE_PAGE(HID_USAGE_PAGE_PID), \
         HID_USAGE(HID_USAGE_PID_START_DELAY), \
-        HID_UNIT_N(4099, 2), \
+        HID_UNIT_N(HID_UNIT_SECONDS, 2), \
         HID_UNIT_EXPONENT(-3), \
         HID_LOGICAL_MIN(0), \
         HID_LOGICAL_MAX_N(32767, 2), \
@@ -259,7 +261,7 @@
         /* Attack Time, Fade Time */ \
         HID_USAGE(HID_USAGE_PID_ATTACK_TIME), \
         HID_USAGE(HID_USAGE_PID_FADE_TIME), \
-        HID_UNIT_N(4099, 2), \
+        HID_UNIT_N(HID_UNIT_SECONDS, 2), \
         HID_UNIT_EXPONENT(-3), \
         HID_LOGICAL_MIN(0), \
         HID_LOGICAL_MAX_N(32767, 2), \
@@ -306,19 +308,19 @@
         HID_REPORT_COUNT(1), \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         \
-        /* Center-Point Offset + Pos/Neg Coefficients */ \
+        /* Center-Point Offset */ \
         HID_USAGE(HID_USAGE_PID_CENTER_POINT_OFFSET), \
-        HID_USAGE(HID_USAGE_PID_POSITIVE_COEFFICIENT), \
-        HID_USAGE(HID_USAGE_PID_NEGATIVE_COEFFICIENT), \
         HID_LOGICAL_MIN(-128), \
         HID_LOGICAL_MAX(127), \
         HID_PHYSICAL_MIN_N(-10000, 2), \
         HID_PHYSICAL_MAX_N(10000, 2), \
         HID_REPORT_SIZE(8), \
-        HID_REPORT_COUNT(3), \
+        HID_REPORT_COUNT(1), \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         \
-        /* Positive/Negative Saturation; Dead Band */ \
+        /* Positive/Negative Coefficient/Saturation; Dead Band */ \
+        HID_USAGE(HID_USAGE_PID_POSITIVE_COEFFICIENT), \
+        HID_USAGE(HID_USAGE_PID_NEGATIVE_COEFFICIENT), \
         HID_USAGE(HID_USAGE_PID_POSITIVE_SATURATION), \
         HID_USAGE(HID_USAGE_PID_NEGATIVE_SATURATION), \
         HID_USAGE(HID_USAGE_PID_DEAD_BAND), \
@@ -327,7 +329,7 @@
         HID_PHYSICAL_MIN(0), \
         HID_PHYSICAL_MAX_N(10000, 2), \
         HID_REPORT_SIZE(8), \
-        HID_REPORT_COUNT(3), \
+        HID_REPORT_COUNT(5), \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         \
     HID_COLLECTION_END
@@ -387,7 +389,7 @@
         \
         /* Period */ \
         HID_USAGE(HID_USAGE_PID_PERIOD), \
-        HID_UNIT_N(4099, 2), \
+        HID_UNIT_N(HID_UNIT_SECONDS, 2), \
         HID_UNIT_EXPONENT(-3), \
         HID_LOGICAL_MIN(0), \
         HID_LOGICAL_MAX_N(32767, 2), \

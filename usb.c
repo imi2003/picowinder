@@ -68,6 +68,34 @@ static inline uint16_t join16(uint8_t first, uint8_t second)
 #define USB_DURATION_INFINITE 0xffff
 #define MIDI_DURATION_INFINITE 0
 
+struct __attribute__((__packed__ )) t_set_envelope_report
+{
+    uint8_t effect_id;
+    uint8_t attack_level;
+    uint8_t fade_level;
+    uint16_t attack_time;
+    uint16_t fade_time;
+};
+
+struct __attribute__((__packed__ )) t_set_condition_report
+{
+    uint8_t effect_id;
+    uint8_t axis; // "block offset"
+    int8_t center_point_offset;
+    uint8_t pos_coefficient;
+    uint8_t neg_coefficient;
+    uint8_t pos_saturation;
+    uint8_t neg_saturation;
+    uint8_t dead_band;
+};
+
+struct __attribute__((__packed__ )) t_set_ramp_report
+{
+    uint8_t effect_id;
+    int8_t start;
+    int8_t end;
+};
+
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
         hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
 {
@@ -136,6 +164,47 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                     break;
                 }
 
+                case REPORT_ID_OUTPUT_SET_ENVELOPE:
+                {
+                    struct t_set_envelope_report *report = (struct t_set_envelope_report*)(buffer);
+
+                    // map 0->0xff down to 0->0x7f
+                    ffb_midi_modify(uart0, report->effect_id, MODIFY_ATTACK_LEVEL, report->attack_level >> 1);
+                    ffb_midi_modify(uart0, report->effect_id, MODIFY_FADE_LEVEL, report->fade_level >> 1);
+
+                    // USB times are in ms; we convert to 2ms units
+                    ffb_midi_modify(uart0, report->effect_id, MODIFY_ATTACK_TIME, report->attack_time >> 1);
+                    ffb_midi_modify(uart0, report->effect_id, MODIFY_FADE_TIME, report->fade_time >> 1);
+
+                    break;
+                }
+
+                case REPORT_ID_OUTPUT_SET_CONDITION:
+                {
+                    struct t_set_condition_report *report = (struct t_set_condition_report*)(buffer);
+                    // SW FFB Pro cannot use Neg Coefficient, Pos/Neg Saturation, or Dead Band.
+
+                    switch (report->axis)
+                    {
+                        case 0:
+                        {
+                            ffb_midi_modify(uart0, report->effect_id, MODIFY_OFFSET_X, report->center_point_offset);
+                            ffb_midi_modify(uart0, report->effect_id, MODIFY_STRENGTH_X, report->pos_coefficient >> 1);
+
+                            break;
+                        }
+                        case 1:
+                        {
+                            ffb_midi_modify(uart0, report->effect_id, MODIFY_OFFSET_Y, report->center_point_offset);
+                            ffb_midi_modify(uart0, report->effect_id, MODIFY_STRENGTH_Y, report->pos_coefficient >> 1);
+
+                            break;
+                        }
+                    }
+
+                    break;
+                }
+
                 case REPORT_ID_OUTPUT_SET_CONSTANT:
                 {
                     uint8_t effect_id = buffer[0];
@@ -143,6 +212,17 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                     magnitude = (magnitude & 0x1ff) >> 1;
 
                     ffb_midi_modify(uart0, effect_id, MODIFY_AMPLITUDE1, magnitude);
+
+                    break;
+                }
+
+
+                case REPORT_ID_OUTPUT_SET_RAMP:
+                {
+                    struct t_set_ramp_report *report = (struct t_set_ramp_report*)(buffer);
+
+                    ffb_midi_modify(uart0, report->effect_id, MODIFY_AMPLITUDE1, report->start);
+                    ffb_midi_modify(uart0, report->effect_id, MODIFY_AMPLITUDE2, report->end);
 
                     break;
                 }
@@ -193,6 +273,14 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id,
                 {
                     uint8_t effect_id = buffer[0];
                     ffb_midi_erase(uart0, effect_id);
+
+                    break;
+                }
+
+
+                case REPORT_ID_OUTPUT_DEVICE_CONTROL:
+                {
+                    // TODO
 
                     break;
                 }

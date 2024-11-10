@@ -66,9 +66,9 @@ struct Effect
 #define MODIFY_SAMPLE_RATE  0x50
 #define MODIFY_ATTACK_TIME  0x5c
 #define MODIFY_FADE_TIME    0x60    // TODO verify
-#define MODIFY_ATTACK       0x64
+#define MODIFY_ATTACK_LEVEL 0x64
 #define MODIFY_MAGNITUDE    0x68
-#define MODIFY_FADE         0x6c
+#define MODIFY_FADE_LEVEL   0x6c
 #define MODIFY_FREQUENCY    0x70
 #define MODIFY_AMPLITUDE1   0x74    // TODO figure this one out
 #define MODIFY_AMPLITUDE2   0x78    // TODO figure this one out

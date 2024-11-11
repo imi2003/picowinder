@@ -5,6 +5,7 @@
 #include "device/usbd.h"
 
 #include "hid_pid.h"
+#include "config.h"
 
 #define HID_UNIT_SECONDS 0x1003 // Documented as "Eng Lin:Time" in the PID spec
 
@@ -13,6 +14,20 @@
 // Input Report: Joystick postition, buttons, etc.
 /////////////////////////////////////////////////////////////////////
 
+#ifdef FIRMWARE_SHIFT
+    #define NUM_BUTTONS 16
+
+    // don't need any padding in this case
+    #define BUTTON_PADDING HID_REPORT_COUNT(1)
+#else
+    #define NUM_BUTTONS 9
+
+    #define BUTTON_PADDING \
+        HID_REPORT_COUNT(1), \
+        HID_REPORT_SIZE(7), \
+        HID_INPUT(HID_CONSTANT | HID_ARRAY | HID_ABSOLUTE)
+#endif
+
 #define SIDEWINDER_REPORT_DESC_INPUT_JOYSTICK(...) \
     HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), \
     HID_USAGE(HID_USAGE_DESKTOP_JOYSTICK), \
@@ -20,16 +35,14 @@
         /* Report ID */ __VA_ARGS__ \
         HID_USAGE_PAGE(HID_USAGE_PAGE_BUTTON), \
             HID_USAGE_MIN(1), \
-            HID_USAGE_MAX(9), \
+            HID_USAGE_MAX(NUM_BUTTONS), \
             HID_LOGICAL_MIN(0), \
             HID_LOGICAL_MAX(1), \
-            HID_REPORT_COUNT(9), \
+            HID_REPORT_COUNT(NUM_BUTTONS), \
             HID_REPORT_SIZE(1), \
             HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
             \
-            HID_REPORT_COUNT(1), \
-            HID_REPORT_SIZE(7), \
-            HID_INPUT(HID_CONSTANT | HID_ARRAY | HID_ABSOLUTE), \
+            BUTTON_PADDING, \
             \
         HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), \
             /* X and Y are both reported as unsigned 10-bit */ \

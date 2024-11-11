@@ -8,21 +8,14 @@
 
 #include "ffb_handshake.pio.h"
 #include "read_joystick.pio.h"
-
 #include "ffb_midi.h"
 
-
-#define PIN_MIDI_TX 0
-#define PIN_TRIGGER 2
-#define PIN_CLK     3
-#define PIN_D0      4
-#define PIN_D1      5
-#define PIN_D2      6
+#include "config.h"
 
 
 struct JoystickState
 {
-    uint16_t buttons    :  9;
+    uint16_t buttons        ;
     uint16_t x          : 10;
     uint16_t y          : 10;
     uint8_t  throttle   :  7;
@@ -59,14 +52,21 @@ void joystickReadIRQ()
     uint64_t raw1 = pio_sm_get(pio, sm);
     uint64_t raw = (raw1 << 16) | (raw0 >> 8);
 
-    joystickState.buttons   = (raw      ) & 0x1ff;
+#ifdef FIRMWARE_SHIFT
+    bool shift = ((~raw) & 0x100) != 0;
+    uint16_t buttons = (~raw) & 0xff;
+    joystickState.buttons = shift ? (buttons << 8) : buttons;
+#else
+    joystickState.buttons   = ~(raw & 0x1ff);
+#endif
+
     joystickState.x         = (raw >>  9) & 0x3ff;
     joystickState.y         = (raw >> 19) & 0x3ff;
     joystickState.throttle  = (raw >> 29) & 0x07f;
     joystickState.twist     = (raw >> 36) & 0x03f;
     joystickState.hat       = (raw >> 42) & 0x00f;
 
-    report.buttons = ~joystickState.buttons;
+    report.buttons = joystickState.buttons;
     report.x = joystickState.x;
     report.y = joystickState.y;
     report.twist = joystickState.twist;
@@ -133,8 +133,10 @@ int main()
     pio_sm_set_enabled(pio, sm, false);
 
     // Now that the handshake is done, we can send MIDI commands.
+#ifdef DISABLE_AUTO_CENTER
     // We'll start by disabling the built-in auto-center effect.
     ffb_midi_set_autocenter(uart0, false);
+#endif // DISABLE_AUTO_CENTER
 
     // Read-data PIO program setup
     uint offset_readjoy = pio_add_program(pio, &read_joystick_program);
@@ -162,7 +164,6 @@ FFB to enhance them. We do so by adding two effects: a light spring effect that 
 and a kickback effect that plays when the trigger is pulled, and sustains a little while
 the trigger is held.
 */
-#define EXAMPLE_EFFECTS
 #ifdef EXAMPLE_EFFECTS
 
     struct Effect lightSpringEffect = {
@@ -207,7 +208,7 @@ the trigger is held.
         hid_task();
 
 #ifdef EXAMPLE_EFFECTS
-        bool fire = (joystickState.buttons & 0x0001) == 0;
+        bool fire = (joystickState.buttons & 0x0001) != 0;
         if (fire && !fire_old)
         {
             ffb_midi_play(uart0, effect_id_kickback);

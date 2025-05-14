@@ -15,9 +15,9 @@ Any pins not listed on both the GamePort side and the Pico side can be left disc
 
 | GamePort Pin                       | Recommended Resistor | Pico Pin        | Notes                                      |
 |------------------------------------|----------------------|-----------------|--------------------------------------------|
-| 1 (VCC)                            |                      | Pin 39 (VSYS)   |                                            |
+| 1 (VCC)                            |                      | Pin 40 (VBUS)   |                                            |
 | 2 (Button 1; Sidewinder CLK)       |                      | Pin 5 (GP3)     |                                            |
-| 3 (Axis X1; Sidewinder Trigger 0)  | 2.2k ohm             | Pin 4 (GP2)     | GamePort pins 3 and 10 both connect to GP2 |
+| 3 (Axis X1; Sidewinder Trigger 0)  | 2.2k ohm             | Pin 4 (GP2)     | GamePort pins 3 and 11 both connect to GP2 |
 | 4 (GND)                            |                      | Any GND pin     |                                            |
 | 7 (Button 2; Sidewinder Data 0)    |                      | Pin 6 (GP4)     |                                            |
 | 10 (Button 3; Sidewinder Data 1)   |                      | Pin 7 (GP5)     |                                            |

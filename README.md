@@ -13,17 +13,39 @@ Strictly speaking, this adapter can be built using nothing except a Raspberry Pi
 
 Any pins not listed on both the GamePort side and the Pico side can be left disconnected.
 
-| GamePort Pin                       | Recommended Resistor | Pico Pin        | Notes                                      |
+| GamePort Pin                       | Recommended Resistor | Pico Pin        | Notes                                      | 
 |------------------------------------|----------------------|-----------------|--------------------------------------------|
-| 1 (VCC)                            |                      | Pin 39 (VSYS)   |                                            |
-| 2 (Button 1; Sidewinder CLK)       |                      | Pin 5 (GP3)     |                                            |
-| 3 (Axis X1; Sidewinder Trigger 0)  | 2.2k ohm             | Pin 4 (GP2)     | GamePort pins 3 and 10 both connect to GP2 |
+| 1 (VCC)                            |                      | Pin 40 (VBUS)   |                                            | 
+| 2 (Button 1; Sidewinder CLK)       |                      | Pin 5 (GP3)     |                                            | 
+| 3 (Axis X1; Sidewinder Trigger 0)  | 2.2k ohm             | Pin 4 (GP2)     | GamePort pins 3 and 11 both connect to GP2 | 
 | 4 (GND)                            |                      | Any GND pin     |                                            |
 | 7 (Button 2; Sidewinder Data 0)    |                      | Pin 6 (GP4)     |                                            |
 | 10 (Button 3; Sidewinder Data 1)   |                      | Pin 7 (GP5)     |                                            |
 | 11 (Axis X2; Sidewinder Trigger 1) | 2.2k ohm             | Pin 4 (GP2)     |                                            |
 | 12 (MIDI TX)                       | 220 ohm              | Pin 1 (GP0)     |                                            |
 | 14 (Button 4; Sidewinder Data 2)   |                      | Pin 9 (GP6)     |                                            |
+
+
+Alternately you can connect the Raspberry Pi Pico directly to the PCB using the following pinout, this will allow you to mount the Pico inside the housing of the controller.
+
+
+
+| Pin on PCB                         | Recommended Resistor | Pico Pin        | Notes                                      | 
+|------------------------------------|----------------------|-----------------|--------------------------------------------|
+| 1  (VCC)                           |                      | Pin 40 (VBUS)   |                                            | 
+| 2  (GND)                           |                      | Any GND pin     |                                            | 
+| 3  (MIDI TX)                       | 220 ohm              | Pin 1 (GP0)     |                                            | 
+| 4  N/C                             |                      | N/C             |                                            |
+| 5  (Button 1; Sidewinder CLK)      |                      | Pin 5 (GP3)     |                                            |
+| 6  (Button 2; Sidewinder Data 0)   |                      | Pin 6 (GP4)     |                                            |
+| 7  (Button 3; Sidewinder Data 1)   |                      | Pin 7 (GP5)     |                                            |
+| 8  (Button 4; Sidewinder Data 2)   |                      | Pin 9 (GP6)     |                                            |
+| 9  (Axis X2; Sidewinder Trigger 1) | 2.2k ohm             | Pin 4 (GP2)     | Pins 9 and 10 both connect to GP2          |
+| 10 N/C                             |                      | N/C             |                                            |
+| 11 (Axis X1; Sidewinder Trigger 0) | 2.2k ohm             | Pin 4 (GP2)     | Pins 9 and 10 both connect to GP2          |
+
+
+
 
 ## Flash the Firmware
 
